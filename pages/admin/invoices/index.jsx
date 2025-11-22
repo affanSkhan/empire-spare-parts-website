@@ -221,25 +221,25 @@ export default function InvoicesListPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[700px]">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Invoice #
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Phone
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Total
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-3 sm:px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -247,25 +247,25 @@ export default function InvoicesListPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredInvoices.map((invoice) => (
                     <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="font-medium text-primary-600">{invoice.invoice_number}</span>
+                      <td className="px-3 sm:px-4 py-4 whitespace-nowrap">
+                        <span className="font-medium text-primary-600 text-sm">{invoice.invoice_number}</span>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
                         {formatDate(invoice.date)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">{invoice.customer_name}</div>
+                      <td className="px-3 sm:px-4 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900 text-sm">{invoice.customer_name}</div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
                         {invoice.customer_phone || '—'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-right font-semibold text-gray-900">
+                      <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-right font-semibold text-gray-900 text-sm">
                         ₹{formatCurrency(invoice.total)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-center">
                         <Link
                           href={`/admin/invoices/${invoice.id}`}
-                          className="text-primary-600 hover:text-primary-700 font-medium text-sm"
+                          className="text-primary-600 hover:text-primary-700 font-medium text-xs sm:text-sm"
                         >
                           View Details →
                         </Link>
