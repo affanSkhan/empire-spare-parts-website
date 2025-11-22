@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
@@ -225,9 +226,9 @@ export default function ProductsPage() {
               <p className="text-gray-700 mb-4">
                 Contact us directly and we'll help you find the right parts
               </p>
-              <a href="/contact" className="btn-primary">
+              <Link href="/contact" className="btn-primary">
                 Contact Us
-              </a>
+              </Link>
             </div>
           )}
         </div>
