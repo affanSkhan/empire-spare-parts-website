@@ -1,0 +1,179 @@
+import { useEffect, useState } from 'react'
+import Head from 'next/head'
+import Link from 'next/link'
+import AdminLayout from '@/components/AdminLayout'
+import { supabase } from '@/lib/supabaseClient'
+import useAdminAuth from '@/hooks/useAdminAuth'
+
+/**
+ * Admin Dashboard - Main Overview Page
+ * Protected route - requires authentication
+ */
+export default function AdminDashboard() {
+  const { user, loading: authLoading } = useAdminAuth()
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalCategories: 0,
+    activeProducts: 0,
+    recentInvoices: 0,
+  })
+
+  useEffect(() => {
+    if (user) {
+      fetchStats()
+    }
+  }, [user])
+
+  async function fetchStats() {
+    // Fetch dashboard statistics
+    const [productsRes, categoriesRes, activeRes, invoicesRes] = await Promise.all([
+      supabase.from('products').select('id', { count: 'exact', head: true }),
+      supabase.from('categories').select('id', { count: 'exact', head: true }),
+      supabase.from('products').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('invoices').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+    ])
+
+    setStats({
+      totalProducts: productsRes.count || 0,
+      totalCategories: categoriesRes.count || 0,
+      activeProducts: activeRes.count || 0,
+      recentInvoices: invoicesRes.count || 0,
+    })
+  }
+
+  if (authLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  return (
+    <AdminLayout>
+      <Head>
+        <title>Admin Dashboard - Empire Spare Parts</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
+
+      <div>
+        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+
+        {/* Stats Cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-sm mb-1">Total Products</p>
+                <p className="text-3xl font-bold">{stats.totalProducts}</p>
+              </div>
+              <div className="bg-blue-400 bg-opacity-30 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm mb-1">Active Products</p>
+                <p className="text-3xl font-bold">{stats.activeProducts}</p>
+              </div>
+              <div className="bg-green-400 bg-opacity-30 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100 text-sm mb-1">Categories</p>
+                <p className="text-3xl font-bold">{stats.totalCategories}</p>
+              </div>
+              <div className="bg-purple-400 bg-opacity-30 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-100 text-sm mb-1">Recent Invoices</p>
+                <p className="text-3xl font-bold">{stats.recentInvoices}</p>
+              </div>
+              <div className="bg-orange-400 bg-opacity-30 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="card mb-8">
+          <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Link href="/admin/products/new" className="flex items-center p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
+              <div className="bg-primary-600 p-3 rounded-lg mr-4">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold">Add Product</p>
+                <p className="text-sm text-gray-600">Create new product</p>
+              </div>
+            </Link>
+
+            <Link href="/admin/invoices/new" className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+              <div className="bg-green-600 p-3 rounded-lg mr-4">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold">New Invoice</p>
+                <p className="text-sm text-gray-600">Generate invoice</p>
+              </div>
+            </Link>
+
+            <Link href="/admin/categories" className="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+              <div className="bg-purple-600 p-3 rounded-lg mr-4">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold">Manage Categories</p>
+                <p className="text-sm text-gray-600">Edit categories</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Welcome Message */}
+        <div className="card bg-gradient-to-r from-primary-50 to-blue-50 border-l-4 border-primary-600">
+          <h3 className="text-lg font-semibold mb-2">Welcome to the Admin Dashboard</h3>
+          <p className="text-gray-700">
+            This is Phase 1 of your Empire Spare Parts management system. 
+            Use the navigation menu to manage products, categories, and generate invoices.
+          </p>
+        </div>
+      </div>
+    </AdminLayout>
+  )
+}

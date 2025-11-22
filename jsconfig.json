@@ -1,0 +1,10 @@
+/* Placeholder for jsconfig.json to enable absolute imports */
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "exclude": ["node_modules", ".next"]
+}
