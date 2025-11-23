@@ -9,7 +9,7 @@ import Footer from '@/components/Footer'
 export default function ContactPage() {
   // ⚠️ UPDATE THESE WITH YOUR ACTUAL BUSINESS INFORMATION
   const businessInfo = {
-    name: 'Empire Spare Parts',
+    name: 'Empire Car A/C',
     phoneNumber: '+917741077666',           // Format: +[country code][number]
     whatsappNumber: '917741077666',         // Format: [country code][number] (no + or spaces)
     email: 'info@empirespareparts.com',
@@ -62,7 +62,7 @@ export default function ContactPage() {
                 Contact Us
               </h1>
               <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
-                Have questions about our products? We're here to help! Get in touch with us for pricing and availability.
+                Need car A/C parts or professional installation services? Visit our Amravati shop or get in touch for pricing and availability.
               </p>
             </div>
 

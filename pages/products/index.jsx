@@ -84,20 +84,20 @@ export default function ProductsPage() {
   return (
     <>
       <Head>
-        <title>Product Catalogue - Premium Automotive Spare Parts | Empire Spare Parts</title>
-        <meta name="description" content="Browse our extensive catalogue of quality automotive spare parts. Find parts by category, brand, and car model. Contact us for pricing and availability." />
-        <meta name="keywords" content="spare parts, automotive parts, car parts, auto parts catalogue" />
+        <title>Car A/C Parts Catalogue - Empire Car A/C | Amravati</title>
+        <meta name="description" content="Browse our extensive catalogue of car air conditioning spare parts and accessories. Find A/C compressors, condensers, and more. Contact us for pricing and availability." />
+        <meta name="keywords" content="car ac parts, ac compressor, ac condenser, car air conditioning, ac spare parts, amravati" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Product Catalogue - Empire Spare Parts" />
-        <meta property="og:description" content="Browse our extensive catalogue of quality automotive spare parts" />
+        <meta property="og:title" content="Car A/C Parts Catalogue - Empire Car A/C" />
+        <meta property="og:description" content="Browse our extensive catalogue of car A/C spare parts and accessories" />
         <meta property="og:url" content="https://yoursite.com/products" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Product Catalogue - Empire Spare Parts" />
-        <meta name="twitter:description" content="Browse our extensive catalogue of quality automotive spare parts" />
+        <meta name="twitter:title" content="Car A/C Parts Catalogue - Empire Car A/C" />
+        <meta name="twitter:description" content="Browse car A/C spare parts and accessories in Amravati" />
         
         <link rel="canonical" href="https://yoursite.com/products" />
       </Head>
@@ -222,9 +222,9 @@ export default function ProductsPage() {
           {/* Contact CTA */}
           {!loading && products.length > 0 && (
             <div className="mt-12 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg p-6 sm:p-8 text-center">
-              <h2 className="text-2xl font-bold mb-2">Can't find what you're looking for?</h2>
+              <h2 className="text-2xl font-bold mb-2">Need A/C Installation or Repair Service?</h2>
               <p className="text-gray-700 mb-4">
-                Contact us directly and we'll help you find the right parts
+                Visit our Amravati shop for professional car A/C services or contact us for parts availability
               </p>
               <Link href="/contact" className="btn-primary">
                 Contact Us

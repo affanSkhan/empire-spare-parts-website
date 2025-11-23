@@ -22,7 +22,7 @@ export default function InvoiceDetailPage() {
 
   // Business information (⚠️ UPDATE WITH YOUR DETAILS)
   const businessInfo = {
-    name: 'Empire Spare Parts',
+    name: 'Empire Car A/C',
     address: 'Shop Number 19, Usmaniya Masjid Complex, Bus stand road',
     city: 'Amravati',
     state: 'Maharashtra',

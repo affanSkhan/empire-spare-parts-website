@@ -57,7 +57,7 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <Head>
-        <title>Admin Dashboard - Empire Spare Parts</title>
+        <title>Admin Dashboard - Empire Car A/C</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 

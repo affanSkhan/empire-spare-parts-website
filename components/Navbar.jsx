@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
+import Logo from './Logo'
 
 /**
  * Public Site Navigation Component
@@ -13,8 +14,8 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="text-xl font-bold text-primary-600">
-            Empire Spare Parts
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <Logo size="small" />
           </Link>
 
           {/* Desktop Navigation */}

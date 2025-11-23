@@ -63,7 +63,7 @@ export default function AdminLayout({ children }) {
               </svg>
             </button>
             <Link href="/admin" className="text-lg sm:text-xl font-bold text-primary-600">
-              Empire Admin
+              Empire Car A/C Admin
             </Link>
           </div>
 
