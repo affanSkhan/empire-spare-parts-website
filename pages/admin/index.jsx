@@ -62,17 +62,17 @@ export default function AdminDashboard() {
       </Head>
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Dashboard</h1>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <div className="card bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-xs sm:text-sm mb-1">Total Products</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.totalProducts}</p>
               </div>
-              <div className="bg-blue-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
                 <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
@@ -80,13 +80,13 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <div className="card bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-xs sm:text-sm mb-1">Active Products</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.activeProducts}</p>
               </div>
-              <div className="bg-green-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
                 <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -94,13 +94,13 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+          <div className="card bg-gradient-to-br from-purple-500 via-pink-600 to-rose-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-xs sm:text-sm mb-1">Categories</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.totalCategories}</p>
               </div>
-              <div className="bg-purple-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
                 <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
@@ -108,13 +108,13 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="card bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+          <div className="card bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-100 text-xs sm:text-sm mb-1">Recent Invoices</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.recentInvoices}</p>
               </div>
-              <div className="bg-orange-400 bg-opacity-30 p-2 sm:p-3 rounded-lg">
+              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
                 <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>

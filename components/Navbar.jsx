@@ -10,7 +10,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-white via-blue-50 to-purple-50 shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -20,16 +20,16 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/" className="text-gray-700 hover:text-purple-600 transition-colors font-medium">
               Home
             </Link>
-            <Link href="/products" className="text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
               Products
             </Link>
-            <Link href="/contact" className="text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/contact" className="text-gray-700 hover:text-cyan-600 transition-colors font-medium">
               Contact
             </Link>
-            <Link href="/admin/login" className="btn-primary text-sm">
+            <Link href="/admin/login" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all text-sm font-semibold shadow-md">
               Admin Login
             </Link>
           </div>

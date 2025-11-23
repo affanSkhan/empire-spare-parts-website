@@ -54,7 +54,7 @@ export default function ContactPage() {
 
       <Navbar />
 
-      <main className="min-h-screen bg-gray-50 py-8 sm:py-12 lg:py-16">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8 sm:py-12 lg:py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             {/* Page Header */}
@@ -62,17 +62,17 @@ export default function ContactPage() {
               <div className="flex flex-col items-center mb-6">
                 <Logo size="normal" />
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Contact Us
               </h1>
-              <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg sm:text-xl text-gray-700 max-w-2xl mx-auto">
                 Need car A/C parts or professional installation services? Visit our Amravati shop or get in touch for pricing and availability.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
               {/* Contact Information */}
-              <div className="bg-white rounded-lg shadow-md p-6 sm:p-8">
+              <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8 border-t-4 border-gradient-to-r from-blue-500 to-purple-500">
                 <h2 className="text-2xl font-bold mb-6">Get In Touch</h2>
                 
                 <div className="space-y-6">

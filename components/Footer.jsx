@@ -9,8 +9,9 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-gray-800 text-white py-12">
-      <div className="container mx-auto px-4">
+    <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-12 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-blue-900/20"></div>
+      <div className="container mx-auto px-4 relative z-10">
         <div className="grid md:grid-cols-3 gap-8">
           {/* About Section */}
           <div>
@@ -65,8 +66,8 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; {currentYear} Empire Spare Parts. All rights reserved.</p>
+        <div className="border-t border-gray-700/50 mt-8 pt-8 text-center">
+          <p className="text-gray-400">&copy; {currentYear} Empire Car A/C. All rights reserved.</p>
         </div>
       </div>
     </footer>
