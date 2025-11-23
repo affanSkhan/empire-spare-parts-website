@@ -23,11 +23,11 @@ export default function InvoiceDetailPage() {
   // Business information (⚠️ UPDATE WITH YOUR DETAILS)
   const businessInfo = {
     name: 'Empire Spare Parts',
-    address: '123 Main Street',
-    city: 'City Name',
-    state: 'State',
-    zipCode: '12345',
-    phone: '+1234567890',
+    address: 'Shop Number 19, Usmaniya Masjid Complex, Bus stand road',
+    city: 'Amravati',
+    state: 'Maharashtra',
+    zipCode: '444601',
+    phone: '+917741077666',
     email: 'info@empirespareparts.com',
     website: 'www.empirespareparts.com'
   };

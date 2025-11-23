@@ -23,7 +23,7 @@ export default function ProductDetailsPage() {
   const [notFound, setNotFound] = useState(false)
 
   // WhatsApp configuration (update with your number)
-  const whatsappNumber = '1234567890' // Replace with your actual WhatsApp number
+  const whatsappNumber = '917741077666' // Replace with your actual WhatsApp number
 
   useEffect(() => {
     if (slug) {
