@@ -26,6 +26,8 @@ export default function CartPage() {
 
   async function fetchCart() {
     try {
+      console.log('Fetching cart for customer:', customer.id)
+      
       const { data, error } = await supabase
         .from('cart_items')
         .select(`
@@ -33,7 +35,9 @@ export default function CartPage() {
           product:products(
             id,
             name,
-            product_code,
+            slug,
+            brand,
+            car_model,
             category:categories(name),
             images:product_images(image_url, is_primary)
           )
@@ -41,10 +45,16 @@ export default function CartPage() {
         .eq('customer_id', customer.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Cart fetch error:', error)
+        throw error
+      }
+      
+      console.log('Cart items fetched:', data)
       setCartItems(data || [])
     } catch (error) {
       console.error('Error fetching cart:', error)
+      alert('Failed to load cart: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -125,7 +135,7 @@ export default function CartPage() {
         order_id: orderData.id,
         product_id: item.product.id,
         product_name: item.product.name,
-        product_code: item.product.product_code,
+        product_code: item.product.brand ? `${item.product.brand} - ${item.product.car_model || ''}`.trim() : null,
         quantity: item.quantity,
         admin_price: 0, // Admin will set prices later
         admin_total: 0,
@@ -210,7 +220,8 @@ export default function CartPage() {
                         {item.product.name}
                       </h3>
                       <p className="text-sm text-gray-600 mb-2">
-                        {item.product.product_code && `Code: ${item.product.product_code}`}
+                        {item.product.brand && `${item.product.brand}`}
+                        {item.product.car_model && ` • ${item.product.car_model}`}
                         {item.product.category && ` • ${item.product.category.name}`}
                       </p>
 

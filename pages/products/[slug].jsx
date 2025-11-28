@@ -91,6 +91,9 @@ export default function ProductDetailsPage() {
     // Check if customer is logged in
     const customerId = localStorage.getItem('customer_id')
     
+    console.log('Adding to cart, customer_id:', customerId)
+    console.log('Product ID:', product?.id)
+    
     if (!customerId) {
       // Redirect to login with return URL
       router.push(`/auth/login?returnUrl=${router.asPath}`)
@@ -102,15 +105,21 @@ export default function ProductDetailsPage() {
 
     try {
       // Check if item already in cart
-      const { data: existingItem } = await supabase
+      const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
         .select('id, quantity')
         .eq('customer_id', customerId)
         .eq('product_id', product.id)
-        .single()
+        .maybeSingle()
+
+      if (checkError) {
+        console.error('Check cart error:', checkError)
+        throw checkError
+      }
 
       if (existingItem) {
         // Update quantity
+        console.log('Updating existing cart item:', existingItem.id)
         const { error } = await supabase
           .from('cart_items')
           .update({ quantity: existingItem.quantity + quantity })
@@ -120,6 +129,7 @@ export default function ProductDetailsPage() {
         setCartMessage('Cart updated successfully!')
       } else {
         // Add new item
+        console.log('Adding new cart item')
         const { error } = await supabase
           .from('cart_items')
           .insert([{
@@ -128,7 +138,10 @@ export default function ProductDetailsPage() {
             quantity: quantity
           }])
 
-        if (error) throw error
+        if (error) {
+          console.error('Insert error:', error)
+          throw error
+        }
         setCartMessage('Added to cart successfully!')
       }
 
@@ -136,7 +149,7 @@ export default function ProductDetailsPage() {
       setTimeout(() => setCartMessage(''), 3000)
     } catch (error) {
       console.error('Add to cart error:', error)
-      setCartMessage('Failed to add to cart. Please try again.')
+      setCartMessage('Failed to add to cart: ' + error.message)
     } finally {
       setAddingToCart(false)
     }
