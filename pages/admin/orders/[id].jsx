@@ -61,7 +61,6 @@ export default function AdminOrderDetail() {
             slug,
             brand,
             car_model,
-            product_code,
             product_images(image_url, is_primary)
           )
         `)
