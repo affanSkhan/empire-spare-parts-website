@@ -198,9 +198,6 @@ export default function InvoiceDetailPage() {
   function shareViaWhatsApp() {
     if (!invoice) return;
     
-    // Generate PDF first
-    generatePDF();
-    
     // Use public invoice URL
     const publicUrl = `${window.location.origin}/invoice/${invoice.id}`;
     
@@ -208,21 +205,15 @@ export default function InvoiceDetailPage() {
       `Customer: ${invoice.customer_name}\n` +
       `Amount: ₹${formatCurrency(invoice.total)}\n` +
       `Date: ${formatDate(invoice.date)}\n\n` +
-      `📄 PDF has been downloaded. Please attach it to this chat.\n\n` +
-      `🔗 View online: ${publicUrl}`;
+      `🔗 View & Download: ${publicUrl}`;
     
     const whatsappUrl = `https://wa.me/${invoice.customer_phone?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
     setShowShareMenu(false);
-    
-    showToast('success', 'PDF downloaded! Please attach it to WhatsApp.');
   }
 
   function shareViaEmail() {
     if (!invoice) return;
-    
-    // Generate PDF first
-    generatePDF();
     
     // Use public invoice URL
     const publicUrl = `${window.location.origin}/invoice/${invoice.id}`;
@@ -233,16 +224,13 @@ export default function InvoiceDetailPage() {
       `Invoice Number: ${invoice.invoice_number}\n` +
       `Date: ${formatDate(invoice.date)}\n` +
       `Amount: ₹${formatCurrency(invoice.total)}\n\n` +
-      `View invoice online: ${publicUrl}\n\n` +
-      `Note: PDF has been downloaded. Please attach it to this email.\n\n` +
+      `View & Download Invoice: ${publicUrl}\n\n` +
       `Thank you for your business!\n\n` +
       `Best regards,\n${businessInfo.name}\n${businessInfo.phone}`;
     
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoUrl;
     setShowShareMenu(false);
-    
-    showToast('success', 'PDF downloaded! Please attach it to your email.');
   }
 
   function copyInvoiceLink() {
@@ -356,10 +344,7 @@ export default function InvoiceDetailPage() {
                   ></div>
                   
                   {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-64 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
-                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                      <p className="text-xs text-gray-600">📄 PDF will be downloaded for sharing</p>
-                    </div>
+                  <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
                     <div className="py-1" role="menu">
                       <button
                         onClick={shareViaWhatsApp}
