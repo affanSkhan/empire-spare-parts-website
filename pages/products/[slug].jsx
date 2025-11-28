@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabaseClient'
 /**
  * Product Details Page
  * Dynamic route: /products/[slug]
- * Shows full product information with image gallery and WhatsApp enquiry
+ * Shows full product information with image gallery and Add to Cart
  */
 export default function ProductDetailsPage() {
   const router = useRouter()
@@ -21,6 +21,9 @@ export default function ProductDetailsPage() {
   const [selectedImage, setSelectedImage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [quantity, setQuantity] = useState(1)
+  const [addingToCart, setAddingToCart] = useState(false)
+  const [cartMessage, setCartMessage] = useState('')
 
   // WhatsApp configuration (update with your number)
   const whatsappNumber = '917741077666' // Replace with your actual WhatsApp number
@@ -81,6 +84,62 @@ export default function ProductDetailsPage() {
     
     const message = `Hello, I want details for: ${product.name}${product.car_model ? ` (${product.car_model})` : ''}`
     return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
+  }
+
+  // Add to Cart functionality
+  async function handleAddToCart() {
+    // Check if customer is logged in
+    const customerId = localStorage.getItem('customer_id')
+    
+    if (!customerId) {
+      // Redirect to login with return URL
+      router.push(`/auth/login?returnUrl=${router.asPath}`)
+      return
+    }
+
+    setAddingToCart(true)
+    setCartMessage('')
+
+    try {
+      // Check if item already in cart
+      const { data: existingItem } = await supabase
+        .from('cart_items')
+        .select('id, quantity')
+        .eq('customer_id', customerId)
+        .eq('product_id', product.id)
+        .single()
+
+      if (existingItem) {
+        // Update quantity
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity: existingItem.quantity + quantity })
+          .eq('id', existingItem.id)
+
+        if (error) throw error
+        setCartMessage('Cart updated successfully!')
+      } else {
+        // Add new item
+        const { error } = await supabase
+          .from('cart_items')
+          .insert([{
+            customer_id: customerId,
+            product_id: product.id,
+            quantity: quantity
+          }])
+
+        if (error) throw error
+        setCartMessage('Added to cart successfully!')
+      }
+
+      // Clear message after 3 seconds
+      setTimeout(() => setCartMessage(''), 3000)
+    } catch (error) {
+      console.error('Add to cart error:', error)
+      setCartMessage('Failed to add to cart. Please try again.')
+    } finally {
+      setAddingToCart(false)
+    }
   }
 
   // Loading state
@@ -323,30 +382,76 @@ export default function ProductDetailsPage() {
                 </div>
               </div>
 
+              {/* Quantity Selector */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quantity
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    disabled={quantity <= 1}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 text-center border border-gray-300 rounded-lg px-3 py-2 font-semibold"
+                  />
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Cart Success Message */}
+              {cartMessage && (
+                <div className={`mb-4 p-3 rounded-lg ${cartMessage.includes('success') ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {cartMessage}
+                  </div>
+                </div>
+              )}
+
               {/* CTA Buttons */}
               <div className="space-y-3">
+                {/* Add to Cart Button */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
+                  className="flex items-center justify-center w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all font-semibold text-lg shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  {addingToCart ? 'Adding...' : 'Add to Cart'}
+                </button>
+
                 {/* WhatsApp Enquiry */}
                 <a
                   href={getWhatsAppLink()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-full px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
+                  className="flex items-center justify-center w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-md hover:shadow-lg"
                 >
-                  <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
-                  Enquire on WhatsApp
-                </a>
-
-                {/* Call Now */}
-                <a
-                  href="tel:+1234567890"
-                  className="flex items-center justify-center w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  Call Us Now
+                  Ask Questions
                 </a>
 
                 {/* Browse More */}

@@ -4,18 +4,17 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import useCustomerAuth from '@/hooks/useCustomerAuth'
+import useSimpleAuth from '@/hooks/useSimpleAuth'
 
 /**
  * Customer Signup Page
- * Allows new customers to create an account
+ * Allows new customers to create an account with mobile OTP
  */
 export default function SignupPage() {
   const router = useRouter()
-  const { signUp } = useCustomerAuth()
+  const { signUp } = useSimpleAuth()
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -35,9 +34,13 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
 
-    // Validation
-    if (!formData.name || !formData.email || !formData.password) {
-      setError('Please fill in all required fields')
+    if (!formData.name.trim()) {
+      setError('Please enter your name')
+      return
+    }
+
+    if (!formData.phone.trim()) {
+      setError('Please enter your mobile number')
       return
     }
 
@@ -52,13 +55,8 @@ export default function SignupPage() {
     }
 
     setLoading(true)
-
-    const result = await signUp(
-      formData.email,
-      formData.password,
-      formData.name,
-      formData.phone
-    )
+    
+    const result = await signUp(formData.name, formData.phone, formData.password)
 
     if (result.success) {
       router.push('/customer/dashboard')
@@ -85,7 +83,7 @@ export default function SignupPage() {
                 Create Account
               </h1>
               <p className="text-center text-gray-600 mb-6">
-                Sign up to start ordering car A/C parts
+                Sign up with your mobile number
               </p>
 
               {error && (
@@ -111,23 +109,8 @@ export default function SignupPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="input-field"
-                    required
-                  />
-                </div>
-
-                <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
+                    Mobile Number *
                   </label>
                   <input
                     type="tel"
@@ -136,8 +119,10 @@ export default function SignupPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="+91 XXXXXXXXXX"
+                    placeholder="03001234567"
+                    required
                   />
+                  <p className="text-xs text-gray-500 mt-1">This will be your login username</p>
                 </div>
 
                 <div>

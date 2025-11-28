@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import CustomerLayout from '@/components/CustomerLayout'
-import useCustomerAuth from '@/hooks/useCustomerAuth'
+import useSimpleAuth from '@/hooks/useSimpleAuth'
 import { supabase } from '@/lib/supabaseClient'
 
 /**
@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabaseClient'
  * Overview of customer account and recent activity
  */
 export default function CustomerDashboard() {
-  const { customer } = useCustomerAuth()
+  const { customer } = useSimpleAuth()
   const [stats, setStats] = useState({
     cartItems: 0,
     totalOrders: 0,

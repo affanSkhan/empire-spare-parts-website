@@ -4,18 +4,18 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import useCustomerAuth from '@/hooks/useCustomerAuth'
+import useSimpleAuth from '@/hooks/useSimpleAuth'
 
 /**
  * Customer Login Page
- * Allows existing customers to sign in
+ * Allows existing customers to sign in with mobile OTP
  */
 export default function LoginPage() {
   const router = useRouter()
   const { returnUrl } = router.query
-  const { signIn } = useCustomerAuth()
+  const { signIn } = useSimpleAuth()
   const [formData, setFormData] = useState({
-    email: '',
+    phone: '',
     password: '',
   })
   const [loading, setLoading] = useState(false)
@@ -33,20 +33,23 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
 
-    if (!formData.email || !formData.password) {
-      setError('Please fill in all fields')
+    if (!formData.phone.trim()) {
+      setError('Please enter your mobile number')
+      return
+    }
+
+    if (!formData.password) {
+      setError('Please enter your password')
       return
     }
 
     setLoading(true)
-
-    const result = await signIn(formData.email, formData.password)
+    const result = await signIn(formData.phone, formData.password)
 
     if (result.success) {
-      // Redirect to return URL or dashboard
       router.push(returnUrl || '/customer/dashboard')
     } else {
-      setError(result.error || 'Invalid email or password')
+      setError(result.error || 'Invalid mobile number or password')
       setLoading(false)
     }
   }
@@ -68,7 +71,7 @@ export default function LoginPage() {
                 Welcome Back
               </h1>
               <p className="text-center text-gray-600 mb-6">
-                Log in to your account
+                Login with your mobile number
               </p>
 
               {error && (
@@ -79,23 +82,24 @@ export default function LoginPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                    Mobile Number *
                   </label>
                   <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
                     onChange={handleChange}
                     className="input-field"
+                    placeholder="03001234567"
                     required
                   />
                 </div>
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
+                    Password *
                   </label>
                   <input
                     type="password"

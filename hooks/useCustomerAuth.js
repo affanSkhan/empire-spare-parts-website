@@ -60,51 +60,93 @@ export default function useCustomerAuth() {
   }
 
   /**
-   * Sign up new customer
+   * Sign up new customer with phone number (using phone as email)
    */
-  async function signUp(email, password, name, phone) {
+  async function signUp(name, phone, password) {
     try {
-      // Create auth user
+      // Use phone number as email for Supabase auth with .test domain
+      const phoneDigits = phone.replace(/\D/g, '')
+      const email = `${phoneDigits}@test.com`
+      
+      console.log('Attempting signup with:', { email, name, phone })
+      
+      // Create auth user - explicitly disable email confirmation
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            phone: phone,
+            name: name,
+          }
+        }
       })
 
-      if (authError) throw authError
+      console.log('Auth response:', { authData, authError })
 
-      if (authData.user) {
+      if (authError) {
+        console.error('Auth error:', authError)
+        throw authError
+      }
+
+      // Check if user needs confirmation or is immediately available
+      const user = authData.user || authData.session?.user
+      
+      if (user) {
+        console.log('User created:', user.id, 'Session:', !!authData.session)
+        console.log('User created, creating customer profile...')
+        
         // Create customer profile
         const { data: customerData, error: customerError } = await supabase
           .from('customers')
           .insert([
             {
-              user_id: authData.user.id,
+              user_id: user.id,
               name,
-              email,
               phone,
             },
           ])
           .select()
           .single()
 
-        if (customerError) throw customerError
+        console.log('Customer profile response:', { customerData, customerError })
 
-        setUser(authData.user)
+        if (customerError) {
+          console.error('Customer creation error:', customerError)
+          throw customerError
+        }
+
+        setUser(user)
         setCustomer(customerData)
 
-        return { success: true, user: authData.user, customer: customerData }
+        // If no session, try to sign in immediately
+        if (!authData.session) {
+          console.log('No session, attempting immediate sign in...')
+          const signInResult = await signIn(phone, password)
+          if (!signInResult.success) {
+            console.warn('Auto sign-in failed, user must log in manually')
+          }
+        }
+
+        return { success: true, user: user, customer: customerData }
+      } else {
+        throw new Error('No user returned from signup - email confirmation may be required')
       }
     } catch (error) {
       console.error('Signup error:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error.message || 'Failed to create account' }
     }
   }
 
   /**
-   * Sign in existing customer
+   * Sign in existing customer with phone number
    */
-  async function signIn(email, password) {
+  async function signIn(phone, password) {
     try {
+      // Convert phone to email format
+      const phoneDigits = phone.replace(/\D/g, '')
+      const email = `${phoneDigits}@test.com`
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import CustomerLayout from '@/components/CustomerLayout'
-import useCustomerAuth from '@/hooks/useCustomerAuth'
+import useSimpleAuth from '@/hooks/useSimpleAuth'
 import { supabase } from '@/lib/supabaseClient'
 
 /**
@@ -13,7 +13,7 @@ import { supabase } from '@/lib/supabaseClient'
  */
 export default function CartPage() {
   const router = useRouter()
-  const { customer } = useCustomerAuth()
+  const { customer } = useSimpleAuth()
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [placing, setPlacing] = useState(false)

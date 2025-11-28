@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
-import useCustomerAuth from '@/hooks/useCustomerAuth'
+import useSimpleAuth from '@/hooks/useSimpleAuth'
 
 /**
  * Customer Portal Layout
@@ -11,7 +11,7 @@ import useCustomerAuth from '@/hooks/useCustomerAuth'
  */
 export default function CustomerLayout({ children }) {
   const router = useRouter()
-  const { customer, loading, signOut } = useCustomerAuth()
+  const { customer, loading, signOut } = useSimpleAuth()
 
   useEffect(() => {
     if (!loading && !customer) {
