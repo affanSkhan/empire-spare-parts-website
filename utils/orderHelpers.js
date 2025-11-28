@@ -7,13 +7,13 @@ import { supabase } from '@/lib/supabaseClient'
  */
 export async function convertOrderToInvoice(orderId, userId) {
   try {
-    // Fetch order with customer and items
+    // Fetch order with customer and items (including product prices)
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
         *,
         customer:customers(id, name, phone),
-        order_items(*)
+        order_items(*, product:products(price))
       `)
       .eq('id', orderId)
       .single()
@@ -21,8 +21,14 @@ export async function convertOrderToInvoice(orderId, userId) {
     if (orderError) throw orderError
     if (!order) throw new Error('Order not found')
 
-    // Validate that all items have prices set
-    const missingPrices = order.order_items.filter(item => !item.admin_price || item.admin_price <= 0)
+    // Use admin_price if set, otherwise use product default price
+    // Validate that all items have prices available
+    const itemsWithPrices = order.order_items.map(item => ({
+      ...item,
+      finalPrice: item.admin_price || item.product?.price || 0
+    }))
+    
+    const missingPrices = itemsWithPrices.filter(item => !item.finalPrice || item.finalPrice <= 0)
     if (missingPrices.length > 0) {
       throw new Error('All items must have prices set before generating invoice')
     }
@@ -32,8 +38,11 @@ export async function convertOrderToInvoice(orderId, userId) {
       throw new Error('Order has already been invoiced')
     }
 
-    // Calculate totals
-    const subtotal = order.order_items.reduce((sum, item) => sum + (item.admin_total || 0), 0)
+    // Calculate totals using final prices
+    const subtotal = itemsWithPrices.reduce((sum, item) => {
+      const itemTotal = item.finalPrice * item.quantity
+      return sum + itemTotal
+    }, 0)
     const taxPercent = 0 // Set default tax, can be modified
     const taxAmount = (subtotal * taxPercent) / 100
     const total = subtotal + taxAmount
@@ -60,15 +69,18 @@ export async function convertOrderToInvoice(orderId, userId) {
 
     if (invoiceError) throw invoiceError
 
-    // Insert invoice items
-    const itemsToInsert = order.order_items.map(item => ({
-      invoice_id: invoiceData.id,
-      product_id: item.product_id,
-      item_name: item.product_name,
-      quantity: item.quantity,
-      unit_price: parseFloat(item.admin_price.toFixed(2)),
-      line_total: parseFloat(item.admin_total.toFixed(2))
-    }))
+    // Insert invoice items using final prices
+    const itemsToInsert = itemsWithPrices.map(item => {
+      const lineTotal = item.finalPrice * item.quantity
+      return {
+        invoice_id: invoiceData.id,
+        product_id: item.product_id,
+        item_name: item.product_name,
+        quantity: item.quantity,
+        unit_price: parseFloat(item.finalPrice.toFixed(2)),
+        line_total: parseFloat(lineTotal.toFixed(2))
+      }
+    })
 
     const { error: itemsError } = await supabase
       .from('invoice_items')

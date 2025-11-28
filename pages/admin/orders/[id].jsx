@@ -50,7 +50,7 @@ export default function AdminOrderDetail() {
         .eq('id', orderData.customer_id)
         .single()
 
-      // Fetch order items with product details
+      // Fetch order items with product details including price
       const { data: itemsData, error: itemsError } = await supabase
         .from('order_items')
         .select(`
@@ -61,6 +61,7 @@ export default function AdminOrderDetail() {
             slug,
             brand,
             car_model,
+            price,
             product_images(image_url, is_primary)
           )
         `)
@@ -369,6 +370,9 @@ export default function AdminOrderDetail() {
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       Price per Unit (₹)
+                      {item.product?.price > 0 && !item.admin_price && (
+                        <span className="ml-2 text-xs text-blue-600">(Default: ₹{item.product.price})</span>
+                      )}
                     </label>
                     <input
                       type="number"
@@ -376,7 +380,7 @@ export default function AdminOrderDetail() {
                       step="0.01"
                       value={item.admin_price || ''}
                       onChange={(e) => handleUpdatePrice(item.id, 'admin_price', e.target.value)}
-                      placeholder="Set price"
+                      placeholder={item.product?.price > 0 ? `Default: ${item.product.price}` : "Set price"}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

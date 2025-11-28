@@ -20,6 +20,7 @@ export default function EditProductPage() {
     car_model: '',
     brand: '',
     description: '',
+    price: '',
     is_active: true,
   });
   const [toast, setToast] = useState(null);
@@ -53,6 +54,7 @@ export default function EditProductPage() {
           car_model: data.car_model || '',
           brand: data.brand || '',
           description: data.description || '',
+          price: data.price || '',
           is_active: data.is_active,
         });
       }
@@ -138,6 +140,7 @@ export default function EditProductPage() {
           car_model: formData.car_model.trim() || null,
           brand: formData.brand.trim() || null,
           description: formData.description.trim() || null,
+          price: formData.price ? parseFloat(formData.price) : 0,
           is_active: formData.is_active,
         })
         .eq('id', id);
@@ -367,6 +370,26 @@ export default function EditProductPage() {
                   className="input-field"
                   placeholder="Enter product description..."
                 />
+              </div>
+
+              <div>
+                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+                  Default Price (₹) <span className="text-xs text-gray-500">(Not shown on customer website)</span>
+                </label>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  className="input-field"
+                  placeholder="0.00"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  This price will be used as default when generating invoices
+                </p>
               </div>
 
               <div className="md:col-span-2">
