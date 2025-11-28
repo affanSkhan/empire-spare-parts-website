@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Head from 'next/head';
 import AdminLayout from '@/components/AdminLayout';
 import Toast from '@/components/Toast';
+import PhoneInput from '@/components/PhoneInput';
 import useAdminAuth from '@/hooks/useAdminAuth';
 import { supabase } from '@/lib/supabaseClient';
 import {
@@ -255,13 +256,12 @@ export default function NewInvoicePage() {
                 <label htmlFor="customer_phone" className="block text-sm font-medium text-gray-700 mb-2">
                   Customer Phone
                 </label>
-                <input
-                  type="tel"
+                <PhoneInput
                   id="customer_phone"
+                  name="customer_phone"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="input-field"
-                  placeholder="+1234567890"
+                  placeholder="1234567890"
                 />
               </div>
 

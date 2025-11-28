@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import PhoneInput from '@/components/PhoneInput'
 import useSimpleAuth from '@/hooks/useSimpleAuth'
 
 /**
@@ -112,14 +113,12 @@ export default function SignupPage() {
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                     Mobile Number *
                   </label>
-                  <input
-                    type="tel"
+                  <PhoneInput
                     id="phone"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="input-field"
-                    placeholder="03001234567"
+                    placeholder="1234567890"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">This will be your login username</p>
