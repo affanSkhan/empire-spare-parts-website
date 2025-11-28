@@ -131,8 +131,8 @@ export default function InvoiceDetailPage() {
       const tableData = items.map(item => [
         item.item_name,
         item.quantity.toString(),
-        `₹${formatCurrency(item.unit_price)}`,
-        `₹${formatCurrency(item.line_total)}`
+        `Rs. ${formatCurrency(item.unit_price)}`,
+        `Rs. ${formatCurrency(item.line_total)}`
       ]);
 
       doc.autoTable({
@@ -167,17 +167,17 @@ export default function InvoiceDetailPage() {
 
       doc.setFont('helvetica', 'normal');
       doc.text('Subtotal:', labelX, yPos);
-      doc.text(`₹${formatCurrency(invoice.subtotal)}`, totalsX, yPos, { align: 'right' });
+      doc.text(`Rs. ${formatCurrency(invoice.subtotal)}`, totalsX, yPos, { align: 'right' });
 
       yPos += 7;
       doc.text(`Tax (${invoice.tax_percent}%):`, labelX, yPos);
-      doc.text(`₹${formatCurrency(invoice.tax_amount)}`, totalsX, yPos, { align: 'right' });
+      doc.text(`Rs. ${formatCurrency(invoice.tax_amount)}`, totalsX, yPos, { align: 'right' });
 
       yPos += 10;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(12);
       doc.text('Total:', labelX, yPos);
-      doc.text(`₹${formatCurrency(invoice.total)}`, totalsX, yPos, { align: 'right' });
+      doc.text(`Rs. ${formatCurrency(invoice.total)}`, totalsX, yPos, { align: 'right' });
 
       // Footer
       yPos = doc.internal.pageSize.height - 20;
