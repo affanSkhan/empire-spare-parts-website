@@ -205,7 +205,7 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[calc(100vh-120px)] sm:max-h-[600px] overflow-hidden flex flex-col">
+        <div className="fixed sm:absolute right-2 sm:right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[calc(100vh-120px)] sm:max-h-[600px] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-cyan-50">
             <h3 className="text-base sm:text-lg font-semibold text-gray-800">Notifications</h3>
