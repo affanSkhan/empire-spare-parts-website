@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Logo from './Logo'
+import { supabase } from '@/lib/supabaseClient'
 
 /**
  * Public Site Navigation Component
@@ -11,12 +12,40 @@ export default function Navbar() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [cartCount, setCartCount] = useState(0)
+
+  // Fetch cart count
+  const fetchCartCount = async () => {
+    const customerId = localStorage.getItem('customer_id')
+    if (!customerId) {
+      setCartCount(0)
+      return
+    }
+
+    try {
+      const { count, error } = await supabase
+        .from('cart_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('customer_id', customerId)
+
+      if (!error) {
+        setCartCount(count || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching cart count:', error)
+    }
+  }
 
   useEffect(() => {
     // Check if customer is logged in
     const checkAuth = () => {
       const customerId = localStorage.getItem('customer_id')
       setIsLoggedIn(!!customerId)
+      if (customerId) {
+        fetchCartCount()
+      } else {
+        setCartCount(0)
+      }
     }
     
     checkAuth()
@@ -32,6 +61,47 @@ export default function Navbar() {
       router.events?.off('routeChangeComplete', checkAuth)
     }
   }, [router])
+
+  // Real-time cart updates
+  useEffect(() => {
+    if (!isLoggedIn) return
+    
+    const customerId = localStorage.getItem('customer_id')
+    if (!customerId) return
+
+    // Fetch initial count
+    fetchCartCount()
+
+    const channel = supabase
+      .channel(`cart-changes-${customerId}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'cart_items', filter: `customer_id=eq.${customerId}` },
+        (payload) => {
+          console.log('Cart changed:', payload)
+          fetchCartCount()
+        }
+      )
+      .subscribe((status) => {
+        console.log('Cart subscription status:', status)
+      })
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [isLoggedIn])
+
+  // Also listen to custom cart update events from within the app
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      fetchCartCount()
+    }
+
+    window.addEventListener('cart-updated', handleCartUpdate)
+    
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdate)
+    }
+  }, [])
 
   return (
     <nav className="bg-gradient-to-r from-white via-slate-50 to-blue-50 shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
@@ -59,8 +129,13 @@ export default function Navbar() {
                 <Link href="/customer/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
                   Dashboard
                 </Link>
-                <Link href="/customer/cart" className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md">
+                <Link href="/customer/cart" className="relative px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md">
                   My Cart
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white animate-pulse">
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </span>
+                  )}
                 </Link>
               </>
             ) : (
@@ -109,8 +184,13 @@ export default function Navbar() {
                   <Link href="/customer/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-4 py-2 hover:bg-blue-50 rounded-lg">
                     Dashboard
                   </Link>
-                  <Link href="/customer/cart" className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md text-center mx-4">
+                  <Link href="/customer/cart" className="relative px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md text-center mx-4">
                     My Cart
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white animate-pulse">
+                        {cartCount > 9 ? '9+' : cartCount}
+                      </span>
+                    )}
                   </Link>
                 </>
               ) : (

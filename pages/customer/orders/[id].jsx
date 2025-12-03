@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 import CustomerLayout from '@/components/CustomerLayout'
+import CustomerToast from '@/components/CustomerToast'
 import useSimpleAuth from '@/hooks/useSimpleAuth'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -21,6 +22,8 @@ export default function OrderDetail() {
   const [orderItems, setOrderItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [statusUpdating, setStatusUpdating] = useState(false)
 
   const fetchOrderDetails = useCallback(async () => {
     if (!id || !customer) return
@@ -72,6 +75,56 @@ export default function OrderDetail() {
   useEffect(() => {
     fetchOrderDetails()
   }, [fetchOrderDetails])
+
+  // Real-time order status updates
+  useEffect(() => {
+    if (!id) return
+
+    console.log('Setting up real-time subscription for order:', id)
+
+    const channel = supabase
+      .channel(`order-${id}`)
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${id}` },
+        (payload) => {
+          console.log('Order updated in real-time:', payload)
+          const newOrder = payload.new
+          const oldOrder = payload.old
+
+          // Trigger visual update animation
+          setStatusUpdating(true)
+          setTimeout(() => setStatusUpdating(false), 2000)
+
+          // Update order state
+          setOrder(newOrder)
+
+          // Show toast notification if status changed
+          if (oldOrder.status !== newOrder.status) {
+            const statusMessages = {
+              pending: 'Your order is being reviewed',
+              reviewed: 'Order reviewed - pricing in progress',
+              approved: 'Order approved! Invoice coming soon',
+              invoiced: 'Invoice generated - check your email'
+            }
+            
+            console.log('Status changed from', oldOrder.status, 'to', newOrder.status)
+            
+            setToast({
+              type: 'success',
+              message: `🎉 Order Status Updated: ${statusMessages[newOrder.status] || newOrder.status}`
+            })
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Order subscription status:', status)
+      })
+
+    return () => {
+      console.log('Cleaning up order subscription')
+      supabase.removeChannel(channel)
+    }
+  }, [id])
 
   function getStatusInfo(status) {
     const info = {
@@ -162,6 +215,15 @@ export default function OrderDetail() {
         <title>Order {order.order_number} - Empire Car A/C</title>
       </Head>
 
+      {/* Toast Notification */}
+      {toast && (
+        <CustomerToast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
@@ -176,7 +238,7 @@ export default function OrderDetail() {
           </Link>
 
           {/* Order Header */}
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
+          <div className={`bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100 transition-all duration-500 ${statusUpdating ? 'ring-4 ring-green-300 ring-opacity-50 scale-[1.02]' : ''}`}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -186,9 +248,17 @@ export default function OrderDetail() {
                   Placed on {formatDate(order.created_at)}
                 </p>
               </div>
-              <span className={`px-4 py-2 rounded-full text-sm font-semibold border bg-${statusInfo.color}-100 text-${statusInfo.color}-800 border-${statusInfo.color}-200`}>
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </span>
+              <div className="relative">
+                <span className={`px-4 py-2 rounded-full text-sm font-semibold border bg-${statusInfo.color}-100 text-${statusInfo.color}-800 border-${statusInfo.color}-200 transition-all duration-300 ${statusUpdating ? 'animate-pulse scale-110' : ''}`}>
+                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                </span>
+                {statusUpdating && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Status Message */}

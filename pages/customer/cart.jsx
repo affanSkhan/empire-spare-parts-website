@@ -77,6 +77,9 @@ export default function CartPage() {
           item.id === itemId ? { ...item, quantity: newQuantity } : item
         )
       )
+
+      // Trigger cart update event for navbar
+      window.dispatchEvent(new Event('cart-updated'))
     } catch (error) {
       console.error('Error updating quantity:', error)
       alert('Failed to update quantity')
@@ -95,6 +98,9 @@ export default function CartPage() {
       if (error) throw error
 
       setCartItems(items => items.filter(item => item.id !== itemId))
+
+      // Trigger cart update event for navbar
+      window.dispatchEvent(new Event('cart-updated'))
     } catch (error) {
       console.error('Error removing item:', error)
       alert('Failed to remove item')
@@ -152,6 +158,9 @@ export default function CartPage() {
         .eq('customer_id', customer.id)
 
       if (clearError) throw clearError
+
+      // Trigger cart update event for navbar
+      window.dispatchEvent(new Event('cart-updated'))
 
       // Redirect to order detail
       router.push(`/customer/orders/${orderData.id}`)

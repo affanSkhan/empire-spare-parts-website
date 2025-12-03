@@ -145,6 +145,9 @@ export default function ProductDetailsPage() {
         setCartMessage('Added to cart successfully!')
       }
 
+      // Trigger cart update event for navbar
+      window.dispatchEvent(new Event('cart-updated'))
+
       // Clear message after 3 seconds
       setTimeout(() => setCartMessage(''), 3000)
     } catch (error) {
