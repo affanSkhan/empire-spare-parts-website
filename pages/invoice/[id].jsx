@@ -264,19 +264,20 @@ export default function PublicInvoicePage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* Header Actions */}
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 print:hidden">
+            <div className="mb-4 sm:mb-6 flex flex-row gap-2 sm:gap-3 print:hidden">
               <button
                 onClick={generatePDF}
-                className="btn-primary flex items-center justify-center gap-2"
+                className="btn-primary flex items-center justify-center gap-2 flex-1"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Download PDF
+                <span className="hidden sm:inline">Download PDF</span>
+                <span className="sm:hidden">PDF</span>
               </button>
               <button
                 onClick={printInvoice}
-                className="btn-secondary flex items-center justify-center gap-2"
+                className="btn-secondary flex items-center justify-center gap-2 flex-1"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -286,64 +287,64 @@ export default function PublicInvoicePage() {
             </div>
 
             {/* Invoice Content */}
-            <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
               {/* Business Header */}
-              <div className="mb-8 border-b pb-6">
-                <div className="flex items-center justify-center gap-4 mb-4">
-                  <img src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C Logo" className="w-16 h-16 rounded-full object-cover" />
-                  <h1 className="text-3xl font-bold text-gray-900">{businessInfo.name}</h1>
+              <div className="mb-6 sm:mb-8 border-b pb-4 sm:pb-6">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                  <img src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C Logo" className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover" />
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center">{businessInfo.name}</h1>
                 </div>
                 <div className="text-center">
-                  <p className="text-gray-600">{businessInfo.address}</p>
-                  <p className="text-gray-600">{businessInfo.city}, {businessInfo.state} {businessInfo.zipCode}</p>
-                  <p className="text-gray-600">Phone: {businessInfo.phone} | Website: <a href={businessInfo.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">{businessInfo.website}</a></p>
+                  <p className="text-sm sm:text-base text-gray-600">{businessInfo.address}</p>
+                  <p className="text-sm sm:text-base text-gray-600">{businessInfo.city}, {businessInfo.state} {businessInfo.zipCode}</p>
+                  <p className="text-sm sm:text-base text-gray-600">Phone: {businessInfo.phone} | Website: <a href={businessInfo.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline break-all">{businessInfo.website}</a></p>
                 </div>
               </div>
 
               {/* Invoice Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-3">INVOICE</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">INVOICE</h2>
                   <div className="space-y-1">
-                    <p className="text-gray-700">
+                    <p className="text-sm sm:text-base text-gray-700">
                       <span className="font-semibold">Invoice #:</span> {invoice.invoice_number}
                     </p>
-                    <p className="text-gray-700">
+                    <p className="text-sm sm:text-base text-gray-700">
                       <span className="font-semibold">Date:</span> {formatDate(invoice.date)}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-3">Bill To:</h3>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Bill To:</h3>
                   <div className="space-y-1">
-                    <p className="text-gray-900 font-semibold">{invoice.customer_name}</p>
+                    <p className="text-sm sm:text-base text-gray-900 font-semibold">{invoice.customer_name}</p>
                     {invoice.customer_phone && (
-                      <p className="text-gray-700">Phone: {invoice.customer_phone}</p>
+                      <p className="text-sm sm:text-base text-gray-700">Phone: {invoice.customer_phone}</p>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Items Table */}
-              <div className="mb-8">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+              <div className="mb-6 sm:mb-8">
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <table className="w-full min-w-[640px]">
                     <thead className="bg-primary-600 text-white">
                       <tr>
-                        <th className="px-4 py-3 text-left font-semibold">Item Description</th>
-                        <th className="px-4 py-3 text-center font-semibold w-20">Qty</th>
-                        <th className="px-4 py-3 text-right font-semibold w-32">Unit Price</th>
-                        <th className="px-4 py-3 text-right font-semibold w-32">Total</th>
+                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-xs sm:text-sm">Item Description</th>
+                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold text-xs sm:text-sm w-16 sm:w-20">Qty</th>
+                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-right font-semibold text-xs sm:text-sm w-24 sm:w-32">Unit Price</th>
+                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-right font-semibold text-xs sm:text-sm w-24 sm:w-32">Total</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {items.map((item, index) => (
                         <tr key={item.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                          <td className="px-4 py-3 text-gray-900">{item.item_name}</td>
-                          <td className="px-4 py-3 text-center text-gray-700">{item.quantity}</td>
-                          <td className="px-4 py-3 text-right text-gray-700">₹{formatCurrency(item.unit_price)}</td>
-                          <td className="px-4 py-3 text-right text-gray-900 font-semibold">₹{formatCurrency(item.line_total)}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900">{item.item_name}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm text-gray-700">{item.quantity}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm text-gray-700">₹{formatCurrency(item.unit_price)}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm text-gray-900 font-semibold">₹{formatCurrency(item.line_total)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -355,19 +356,19 @@ export default function PublicInvoicePage() {
               <div className="flex justify-end">
                 <div className="w-full md:w-1/2 space-y-2">
                   <div className="flex justify-between items-center py-2 border-t border-gray-200">
-                    <span className="text-gray-700">Subtotal:</span>
-                    <span className="font-medium text-gray-900">₹{formatCurrency(invoice.subtotal)}</span>
+                    <span className="text-sm sm:text-base text-gray-700">Subtotal:</span>
+                    <span className="text-sm sm:text-base font-medium text-gray-900">₹{formatCurrency(invoice.subtotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center py-3 border-t-2 border-gray-300">
-                    <span className="text-xl font-bold text-gray-900">Total:</span>
-                    <span className="text-2xl font-bold text-primary-600">₹{formatCurrency(invoice.total)}</span>
+                  <div className="flex justify-between items-center py-2 sm:py-3 border-t-2 border-gray-300">
+                    <span className="text-lg sm:text-xl font-bold text-gray-900">Total:</span>
+                    <span className="text-xl sm:text-2xl font-bold text-primary-600">₹{formatCurrency(invoice.total)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="mt-12 pt-6 border-t text-center">
-                <p className="text-gray-600 italic">Thank you for your business!</p>
+              <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t text-center">
+                <p className="text-sm sm:text-base text-gray-600 italic">Thank you for your business!</p>
               </div>
             </div>
           </div>

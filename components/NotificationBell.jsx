@@ -136,32 +136,32 @@ export default function NotificationBell() {
     switch (type) {
       case 'success':
         return (
-          <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
         )
       case 'warning':
         return (
-          <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
         )
       case 'error':
         return (
-          <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
         )
       default:
         return (
-          <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -205,24 +205,24 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[600px] overflow-hidden flex flex-col">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[calc(100vh-120px)] sm:max-h-[600px] overflow-hidden flex flex-col">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-cyan-50">
-            <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
-            <div className="flex gap-2">
+          <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-cyan-50">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800">Notifications</h3>
+            <div className="flex gap-1 sm:gap-2">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-[10px] sm:text-xs text-blue-600 hover:text-blue-800 font-medium px-1 sm:px-0"
                 >
-                  Mark all read
+                  Mark all
                 </button>
               )}
               <button
                 onClick={clearRead}
-                className="text-xs text-gray-600 hover:text-gray-800 font-medium"
+                className="text-[10px] sm:text-xs text-gray-600 hover:text-gray-800 font-medium px-1 sm:px-0"
               >
-                Clear read
+                Clear
               </button>
             </div>
           </div>
@@ -244,7 +244,7 @@ export default function NotificationBell() {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                  className={`px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                     !notification.is_read ? 'bg-blue-50' : ''
                   }`}
                 >
@@ -255,22 +255,22 @@ export default function NotificationBell() {
                         markAsRead(notification.id)
                         setIsOpen(false)
                       }}
-                      className="flex gap-3"
+                      className="flex gap-2 sm:gap-3"
                     >
                       {getNotificationIcon(notification.type)}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-semibold text-gray-800 text-sm">
+                        <div className="flex items-start justify-between gap-1 sm:gap-2">
+                          <p className="font-semibold text-gray-800 text-xs sm:text-sm">
                             {notification.title}
                           </p>
                           {!notification.is_read && (
                             <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-1"></span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className="text-[10px] sm:text-xs text-gray-400 mt-1 sm:mt-2">
                           {timeAgo(notification.created_at)}
                         </p>
                       </div>
@@ -278,22 +278,22 @@ export default function NotificationBell() {
                   ) : (
                     <div
                       onClick={() => markAsRead(notification.id)}
-                      className="flex gap-3 cursor-pointer"
+                      className="flex gap-2 sm:gap-3 cursor-pointer"
                     >
                       {getNotificationIcon(notification.type)}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-semibold text-gray-800 text-sm">
+                        <div className="flex items-start justify-between gap-1 sm:gap-2">
+                          <p className="font-semibold text-gray-800 text-xs sm:text-sm">
                             {notification.title}
                           </p>
                           {!notification.is_read && (
                             <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-1"></span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className="text-[10px] sm:text-xs text-gray-400 mt-1 sm:mt-2">
                           {timeAgo(notification.created_at)}
                         </p>
                       </div>
