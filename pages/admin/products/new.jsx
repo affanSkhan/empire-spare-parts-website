@@ -154,27 +154,14 @@ export default function NewProductPage() {
                   value={formData.name}
                   onChange={handleNameChange}
                   className="input-field"
-                  placeholder="e.g., Front Bumper"
+                  placeholder="e.g., AC Compressor"
                   required
                 />
-              </div>
-
-              <div className="md:col-span-2">
-                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-                  Slug *
-                </label>
-                <input
-                  type="text"
-                  id="slug"
-                  value={formData.slug}
-                  onChange={handleSlugChange}
-                  className="input-field"
-                  placeholder="e.g., front-bumper"
-                  required
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  URL-friendly version (auto-generated)
-                </p>
+                {formData.slug && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    URL will be: /products/{formData.slug}
+                  </p>
+                )}
               </div>
 
               <div>

@@ -286,25 +286,13 @@ export default function EditProductPage() {
                   placeholder="e.g., Front Bumper"
                   required
                 />
-              </div>
-
-              <div className="md:col-span-2">
-                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-                  Slug *
-                </label>
-                <input
-                  type="text"
-                  id="slug"
-                  value={formData.slug}
-                  onChange={handleSlugChange}
-                  className="input-field"
-                  placeholder="e.g., front-bumper"
-                  required
-                />
                 <p className="text-sm text-gray-500 mt-1">
-                  URL-friendly version (auto-generated)
+                  URL will be: /products/{formData.slug}
                 </p>
               </div>
+
+              {/* Hidden slug field - auto-generated from name */}
+              <input type="hidden" name="slug" value={formData.slug} />
 
               <div>
                 <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-2">

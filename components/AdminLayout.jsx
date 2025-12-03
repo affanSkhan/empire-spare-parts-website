@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Logo from './Logo'
 import NotificationBell from './NotificationBell'
+import PWAInstallPrompt from './PWAInstallPrompt'
 import { supabase } from '@/lib/supabaseClient'
 
 /**
@@ -35,6 +36,20 @@ export default function AdminLayout({ children }) {
 
     return () => subscription.unsubscribe()
   }, [router])
+
+  // Register Service Worker for PWA
+  useEffect(() => {
+    if ('serviceWorker' in navigator && router.pathname.startsWith('/admin')) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered successfully:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  }, [router.pathname])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -202,6 +217,9 @@ export default function AdminLayout({ children }) {
           {children}
         </div>
       </main>
+
+      {/* PWA Install Prompt - Only show in admin */}
+      <PWAInstallPrompt />
     </div>
   )
 }
