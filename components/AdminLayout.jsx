@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Logo from './Logo'
+import NotificationBell from './NotificationBell'
 import { supabase } from '@/lib/supabaseClient'
 
 /**
@@ -72,6 +73,7 @@ export default function AdminLayout({ children }) {
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-4">
+            <NotificationBell />
             <Link href="/" target="_blank" className="text-gray-600 hover:text-primary-600 p-2">
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

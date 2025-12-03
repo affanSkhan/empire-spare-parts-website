@@ -51,7 +51,7 @@ export async function convertOrderToInvoice(orderId, userId) {
     // Insert invoice
     const { data: invoiceData, error: invoiceError } = await supabase
       .from('invoices')
-      .insert([{
+      .insert({
         invoice_number: invoiceNumber,
         customer_name: order.customer.name,
         customer_phone: order.customer.phone || null,
@@ -61,8 +61,8 @@ export async function convertOrderToInvoice(orderId, userId) {
         tax_amount: 0,
         total: parseFloat(total.toFixed(2)),
         created_by: userId
-      }])
-      .select()
+      })
+      .select('*')
       .single()
 
     if (invoiceError) throw invoiceError

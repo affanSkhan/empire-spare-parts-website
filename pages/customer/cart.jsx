@@ -118,14 +118,12 @@ export default function CartPage() {
       // Create order
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .insert([
-          {
-            order_number: orderNumber,
-            customer_id: customer.id,
-            status: 'pending',
-          },
-        ])
-        .select()
+        .insert({
+          order_number: orderNumber,
+          customer_id: customer.id,
+          status: 'pending',
+        })
+        .select('*')
         .single()
 
       if (orderError) throw orderError
@@ -159,7 +157,8 @@ export default function CartPage() {
       router.push(`/customer/orders/${orderData.id}`)
     } catch (error) {
       console.error('Error placing order:', error)
-      alert('Failed to place order. Please try again.')
+      const errorMessage = error?.message || 'Failed to place order. Please try again.'
+      alert(errorMessage)
       setPlacing(false)
     }
   }

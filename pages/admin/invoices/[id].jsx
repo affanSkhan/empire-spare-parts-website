@@ -79,12 +79,19 @@ export default function InvoiceDetailPage() {
       const pageWidth = doc.internal.pageSize.width;
       let yPos = 20;
 
-      // Company Header
+      // Add Logo centered with business name
+      const logoImg = new Image();
+      logoImg.src = '/Empire Car Ac  Logo Design.jpg';
+      const logoSize = 15;
+      const logoX = (pageWidth / 2) - 40; // Center the logo+text combo
+      doc.addImage(logoImg, 'JPEG', logoX, yPos - 3, logoSize, logoSize);
+
+      // Company Header (next to logo)
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text(businessInfo.name, pageWidth / 2, yPos, { align: 'center' });
+      doc.text(businessInfo.name, logoX + logoSize + 3, yPos + 8);
       
-      yPos += 7;
+      yPos += 23;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(businessInfo.address, pageWidth / 2, yPos, { align: 'center' });
@@ -93,7 +100,7 @@ export default function InvoiceDetailPage() {
       doc.text(`${businessInfo.city}, ${businessInfo.state} ${businessInfo.zipCode}`, pageWidth / 2, yPos, { align: 'center' });
       
       yPos += 5;
-      doc.text(`Phone: ${businessInfo.phone} | Email: ${businessInfo.email}`, pageWidth / 2, yPos, { align: 'center' });
+      doc.text(`Phone: ${businessInfo.phone} | Website: ${businessInfo.website}`, pageWidth / 2, yPos, { align: 'center' });
       
       yPos += 15;
 
@@ -389,11 +396,16 @@ export default function InvoiceDetailPage() {
         {/* Invoice Content */}
         <div className="card bg-white">
           {/* Business Header */}
-          <div className="text-center mb-8 border-b pb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{businessInfo.name}</h1>
-            <p className="text-gray-600">{businessInfo.address}</p>
-            <p className="text-gray-600">{businessInfo.city}, {businessInfo.state} {businessInfo.zipCode}</p>
-            <p className="text-gray-600">Phone: {businessInfo.phone} | Email: {businessInfo.email}</p>
+          <div className="mb-8 border-b pb-6">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <img src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C Logo" className="w-16 h-16 rounded-full object-cover" />
+              <h1 className="text-3xl font-bold text-gray-900">{businessInfo.name}</h1>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-600">{businessInfo.address}</p>
+              <p className="text-gray-600">{businessInfo.city}, {businessInfo.state} {businessInfo.zipCode}</p>
+              <p className="text-gray-600">Phone: {businessInfo.phone} | Website: <a href={businessInfo.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">{businessInfo.website}</a></p>
+            </div>
           </div>
 
           {/* Invoice Details */}
