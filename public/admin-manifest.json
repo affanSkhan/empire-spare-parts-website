@@ -4,8 +4,8 @@
   "description": "Admin dashboard for Empire Spare Parts order and inventory management",
   "start_url": "/admin",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
   "orientation": "portrait",
   "icons": [
     {

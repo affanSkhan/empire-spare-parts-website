@@ -69,6 +69,7 @@ export default function AdminLayout({ children }) {
     <>
       <Head>
         <link rel="manifest" href="/admin-manifest.json" />
+        <meta name="theme-color" content="#1e293b" />
       </Head>
       <div className="min-h-screen bg-gray-100">
       {/* Top Navigation Bar */}
