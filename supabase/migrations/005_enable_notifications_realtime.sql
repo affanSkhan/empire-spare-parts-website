@@ -25,14 +25,42 @@ BEGIN
           FOR SELECT USING (true);
     END IF;
 
+    -- Allow inserts from triggers (when auth.uid() is NULL) and from admins
     IF NOT EXISTS (
         SELECT 1 FROM pg_policies 
         WHERE schemaname = 'public' 
         AND tablename = 'notifications' 
-        AND policyname = 'Admins can manage notifications'
+        AND policyname = 'Allow insert notifications'
     ) THEN
-        CREATE POLICY "Admins can manage notifications" ON notifications
-          FOR ALL USING (
+        CREATE POLICY "Allow insert notifications" ON notifications
+          FOR INSERT WITH CHECK (
+            auth.uid() IS NULL OR 
+            auth.uid() IN (SELECT user_id FROM user_roles WHERE role IN ('admin', 'staff'))
+          );
+    END IF;
+
+    -- Allow updates from admins
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE schemaname = 'public' 
+        AND tablename = 'notifications' 
+        AND policyname = 'Admins can update notifications'
+    ) THEN
+        CREATE POLICY "Admins can update notifications" ON notifications
+          FOR UPDATE USING (
+            auth.uid() IN (SELECT user_id FROM user_roles WHERE role IN ('admin', 'staff'))
+          );
+    END IF;
+
+    -- Allow deletes from admins
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE schemaname = 'public' 
+        AND tablename = 'notifications' 
+        AND policyname = 'Admins can delete notifications'
+    ) THEN
+        CREATE POLICY "Admins can delete notifications" ON notifications
+          FOR DELETE USING (
             auth.uid() IN (SELECT user_id FROM user_roles WHERE role IN ('admin', 'staff'))
           );
     END IF;
