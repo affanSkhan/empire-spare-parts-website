@@ -4,6 +4,7 @@ import Link from 'next/link'
 import CustomerLayout from '@/components/CustomerLayout'
 import useSimpleAuth from '@/hooks/useSimpleAuth'
 import { supabase } from '@/lib/supabaseClient'
+import { getStatusColor, getStatusDisplayName } from '@/utils/enhancedOrderHelpers'
 
 /**
  * Customer Orders List Page
@@ -51,16 +52,11 @@ export default function CustomerOrders() {
   }, [fetchOrders])
 
   function getStatusBadge(status) {
-    const styles = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      reviewed: 'bg-blue-100 text-blue-800 border-blue-200',
-      approved: 'bg-green-100 text-green-800 border-green-200',
-      invoiced: 'bg-purple-100 text-purple-800 border-purple-200',
-    }
-
+    const color = getStatusColor(status)
+    
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${styles[status] || 'bg-gray-100 text-gray-800'}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold border bg-${color}-100 text-${color}-800 border-${color}-200`}>
+        {getStatusDisplayName(status)}
       </span>
     )
   }
@@ -96,8 +92,12 @@ export default function CustomerOrders() {
             {[
               { value: 'all', label: 'All Orders' },
               { value: 'pending', label: 'Pending' },
-              { value: 'reviewed', label: 'Reviewed' },
-              { value: 'approved', label: 'Approved' },
+              { value: 'quotation_sent', label: 'Quotations' },
+              { value: 'payment_pending', label: 'Payment Due' },
+              { value: 'processing', label: 'Processing' },
+              { value: 'ready_for_pickup', label: 'Ready' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'cancelled', label: 'Cancelled' },
               { value: 'invoiced', label: 'Invoiced' },
             ].map(({ value, label }) => (
               <button

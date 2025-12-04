@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import AdminLayout from '@/components/AdminLayout'
 import { supabase } from '@/lib/supabaseClient'
+import { getStatusColor, getStatusDisplayName } from '@/utils/enhancedOrderHelpers'
 
 /**
  * Admin Orders List Page
@@ -17,9 +18,14 @@ export default function AdminOrders() {
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
-    reviewed: 0,
-    approved: 0,
-    invoiced: 0,
+    quotation_sent: 0,
+    quote_approved: 0,
+    payment_pending: 0,
+    payment_received: 0,
+    processing: 0,
+    ready_for_pickup: 0,
+    completed: 0,
+    cancelled: 0,
   })
 
   const fetchOrders = useCallback(async () => {
@@ -80,9 +86,14 @@ export default function AdminOrders() {
     const newStats = {
       total: ordersData.length,
       pending: ordersData.filter(o => o.status === 'pending').length,
-      reviewed: ordersData.filter(o => o.status === 'reviewed').length,
-      approved: ordersData.filter(o => o.status === 'approved').length,
-      invoiced: ordersData.filter(o => o.status === 'invoiced').length,
+      quotation_sent: ordersData.filter(o => o.status === 'quotation_sent').length,
+      quote_approved: ordersData.filter(o => o.status === 'quote_approved').length,
+      payment_pending: ordersData.filter(o => o.status === 'payment_pending').length,
+      payment_received: ordersData.filter(o => o.status === 'payment_received').length,
+      processing: ordersData.filter(o => o.status === 'processing').length,
+      ready_for_pickup: ordersData.filter(o => o.status === 'ready_for_pickup').length,
+      completed: ordersData.filter(o => o.status === 'completed').length,
+      cancelled: ordersData.filter(o => o.is_cancelled || o.status === 'cancelled').length,
     }
     setStats(newStats)
   }
@@ -92,16 +103,11 @@ export default function AdminOrders() {
   }, [fetchOrders])
 
   function getStatusBadge(status) {
-    const styles = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      reviewed: 'bg-blue-100 text-blue-800 border-blue-300',
-      approved: 'bg-green-100 text-green-800 border-green-300',
-      invoiced: 'bg-purple-100 text-purple-800 border-purple-300',
-    }
-
+    const color = getStatusColor(status)
+    
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${styles[status] || 'bg-gray-100 text-gray-800'}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className={`px-2 py-1 rounded-full text-xs font-semibold border bg-${color}-100 text-${color}-800 border-${color}-300`}>
+        {getStatusDisplayName(status)}
       </span>
     )
   }
@@ -144,9 +150,9 @@ export default function AdminOrders() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-4 sm:mb-6">
           <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-gray-400">
-            <div className="text-xs sm:text-sm text-gray-600 mb-1">Total Orders</div>
+            <div className="text-xs sm:text-sm text-gray-600 mb-1">Total</div>
             <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-yellow-400">
@@ -154,16 +160,28 @@ export default function AdminOrders() {
             <div className="text-xl sm:text-2xl font-bold text-yellow-700">{stats.pending}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-blue-400">
-            <div className="text-xs sm:text-sm text-gray-600 mb-1">Reviewed</div>
-            <div className="text-xl sm:text-2xl font-bold text-blue-700">{stats.reviewed}</div>
+            <div className="text-xs sm:text-sm text-gray-600 mb-1">Quotations</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-700">{stats.quotation_sent}</div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-amber-400">
+            <div className="text-xs sm:text-sm text-gray-600 mb-1">Payment Due</div>
+            <div className="text-xl sm:text-2xl font-bold text-amber-700">{stats.payment_pending}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-green-400">
-            <div className="text-xs sm:text-sm text-gray-600 mb-1">Approved</div>
-            <div className="text-xl sm:text-2xl font-bold text-green-700">{stats.approved}</div>
+            <div className="text-xs sm:text-sm text-gray-600 mb-1">Processing</div>
+            <div className="text-xl sm:text-2xl font-bold text-green-700">{stats.processing}</div>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-purple-400 col-span-2 sm:col-span-1">
-            <div className="text-xs sm:text-sm text-gray-600 mb-1">Invoiced</div>
-            <div className="text-xl sm:text-2xl font-bold text-purple-700">{stats.invoiced}</div>
+          <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-purple-400">
+            <div className="text-xs sm:text-sm text-gray-600 mb-1">Ready</div>
+            <div className="text-xl sm:text-2xl font-bold text-purple-700">{stats.ready_for_pickup}</div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-emerald-400">
+            <div className="text-xs sm:text-sm text-gray-600 mb-1">Completed</div>
+            <div className="text-xl sm:text-2xl font-bold text-emerald-700">{stats.completed}</div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 border-l-4 border-red-400">
+            <div className="text-xs sm:text-sm text-gray-600 mb-1">Cancelled</div>
+            <div className="text-xl sm:text-2xl font-bold text-red-700">{stats.cancelled}</div>
           </div>
         </div>
 
@@ -186,9 +204,14 @@ export default function AdminOrders() {
               {[
                 { value: 'all', label: 'All' },
                 { value: 'pending', label: 'Pending' },
-                { value: 'reviewed', label: 'Reviewed' },
-                { value: 'approved', label: 'Approved' },
-                { value: 'invoiced', label: 'Invoiced' },
+                { value: 'quotation_sent', label: 'Quotations' },
+                { value: 'quote_approved', label: 'Quote Approved' },
+                { value: 'payment_pending', label: 'Payment Due' },
+                { value: 'payment_received', label: 'Paid' },
+                { value: 'processing', label: 'Processing' },
+                { value: 'ready_for_pickup', label: 'Ready' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'cancelled', label: 'Cancelled' },
               ].map(({ value, label }) => (
                 <button
                   key={value}

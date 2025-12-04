@@ -7,6 +7,13 @@ import CustomerLayout from '@/components/CustomerLayout'
 import CustomerToast from '@/components/CustomerToast'
 import useSimpleAuth from '@/hooks/useSimpleAuth'
 import { supabase } from '@/lib/supabaseClient'
+import { 
+  cancelOrder, 
+  canCustomerCancelOrder, 
+  getStatusColor, 
+  getStatusDisplayName 
+} from '@/utils/enhancedOrderHelpers'
+import CancellationModal from '@/components/CancellationModal'
 
 /**
  * Customer Order Detail Page
@@ -24,6 +31,8 @@ export default function OrderDetail() {
   const [notFound, setNotFound] = useState(false)
   const [toast, setToast] = useState(null)
   const [statusUpdating, setStatusUpdating] = useState(false)
+  const [showCancellationModal, setShowCancellationModal] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
 
   const fetchOrderDetails = useCallback(async () => {
     if (!id || !customer) return
@@ -126,12 +135,76 @@ export default function OrderDetail() {
     }
   }, [id])
 
+  async function handleCancelOrder(reason) {
+    try {
+      setCancelling(true)
+
+      await cancelOrder(order.id, customer.id, 'customer', reason || 'Cancelled by customer')
+
+      setToast({
+        type: 'success',
+        message: '✓ Order cancelled successfully'
+      })
+      
+      setShowCancellationModal(false)
+      await fetchOrderDetails()
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      setToast({
+        type: 'error',
+        message: 'Failed to cancel order: ' + error.message
+      })
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   function getStatusInfo(status) {
     const info = {
       pending: {
         color: 'yellow',
         icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
         message: 'Your order is being reviewed by our team.',
+      },
+      quotation_sent: {
+        color: 'blue',
+        icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+        message: 'Quotation has been sent to you via WhatsApp. Please review and confirm.',
+      },
+      quote_approved: {
+        color: 'green',
+        icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+        message: 'Quotation approved! Awaiting payment confirmation.',
+      },
+      payment_pending: {
+        color: 'amber',
+        icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+        message: 'Please make the payment to proceed with your order.',
+      },
+      payment_received: {
+        color: 'green',
+        icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+        message: 'Payment received! Your order is being processed.',
+      },
+      processing: {
+        color: 'blue',
+        icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+        message: 'Your order is being processed and prepared.',
+      },
+      ready_for_pickup: {
+        color: 'purple',
+        icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4',
+        message: 'Your order is ready for pickup!',
+      },
+      completed: {
+        color: 'emerald',
+        icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+        message: 'Order completed. Thank you for your business!',
+      },
+      cancelled: {
+        color: 'red',
+        icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z',
+        message: 'This order has been cancelled.',
       },
       reviewed: {
         color: 'blue',
@@ -208,6 +281,8 @@ export default function OrderDetail() {
   }
 
   const statusInfo = getStatusInfo(order.status)
+  const isCancelled = order.is_cancelled || order.status === 'cancelled'
+  const canCancel = canCustomerCancelOrder(order)
 
   return (
     <CustomerLayout>
@@ -250,7 +325,7 @@ export default function OrderDetail() {
               </div>
               <div className="relative">
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold border bg-${statusInfo.color}-100 text-${statusInfo.color}-800 border-${statusInfo.color}-200 transition-all duration-300 ${statusUpdating ? 'animate-pulse scale-110' : ''}`}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  {getStatusDisplayName(order.status)}
                 </span>
                 {statusUpdating && (
                   <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -261,12 +336,36 @@ export default function OrderDetail() {
               </div>
             </div>
 
+            {/* Cancellation Alert */}
+            {isCancelled && (
+              <div className="bg-red-100 border-2 border-red-300 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-red-900 mb-1">Order Cancelled</h3>
+                    {order.cancelled_at && (
+                      <p className="text-sm text-red-800 mb-1">
+                        Cancelled on {formatDate(order.cancelled_at)}
+                      </p>
+                    )}
+                    {order.cancellation_reason && (
+                      <p className="text-sm text-red-800">
+                        <span className="font-medium">Reason:</span> {order.cancellation_reason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Status Message */}
             <div className={`bg-${statusInfo.color}-50 border border-${statusInfo.color}-200 rounded-lg p-4 flex items-start`}>
               <svg className={`w-6 h-6 text-${statusInfo.color}-600 mr-3 flex-shrink-0 mt-0.5`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={statusInfo.icon} />
               </svg>
-              <div>
+              <div className="flex-1">
                 <h3 className={`font-semibold text-${statusInfo.color}-900 mb-1`}>
                   Order Status
                 </h3>
@@ -275,6 +374,43 @@ export default function OrderDetail() {
                 </p>
               </div>
             </div>
+
+            {/* Cancel Order Button */}
+            {canCancel && (
+              <div className="mt-4">
+                <button
+                  onClick={() => setShowCancellationModal(true)}
+                  disabled={cancelling}
+                  className="w-full sm:w-auto px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Cancel Order
+                </button>
+                <p className="text-xs text-gray-500 mt-2">
+                  You can cancel this order until payment is processed.
+                </p>
+              </div>
+            )}
+
+            {/* Payment Information */}
+            {order.payment_received_at && (
+              <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                <h3 className="text-sm font-semibold text-green-900 mb-2 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Payment Confirmed
+                </h3>
+                <div className="text-xs sm:text-sm space-y-1 text-green-800">
+                  {order.payment_amount && (
+                    <p><span className="font-medium">Amount Paid:</span> ₹{order.payment_amount.toFixed(2)}</p>
+                  )}
+                  <p><span className="font-medium">Received on:</span> {formatDate(order.payment_received_at)}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Order Items */}
@@ -359,6 +495,16 @@ export default function OrderDetail() {
           </div>
         </div>
       </div>
+
+      {/* Cancellation Modal */}
+      {showCancellationModal && (
+        <CancellationModal
+          order={order}
+          userType="customer"
+          onClose={() => setShowCancellationModal(false)}
+          onConfirm={handleCancelOrder}
+        />
+      )}
     </CustomerLayout>
   )
 }
