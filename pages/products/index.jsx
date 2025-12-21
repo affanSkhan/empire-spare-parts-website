@@ -145,7 +145,7 @@ export default function ProductsPage() {
         <link rel="canonical" href="https://yoursite.com/products" />
       </Head>
 
-      <Navbar />handleSearchChange
+      <Navbar />
 
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 py-6 sm:py-8 lg:py-12">
         <div className="container mx-auto px-4">
