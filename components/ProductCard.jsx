@@ -1,12 +1,20 @@
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { supabase } from '@/lib/supabaseClient'
 
 /**
  * ProductCard Component
  * Displays a product card with image, category, brand, and car model
  * Navigates to product details page on click
+ * Includes quick Add to Cart button
  */
 export default function ProductCard({ product }) {
+  const router = useRouter()
+  const [addingToCart, setAddingToCart] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
+
   // Get primary image or first image
   const getPrimaryImage = () => {
     if (!product.images || product.images.length === 0) {
@@ -14,6 +22,66 @@ export default function ProductCard({ product }) {
     }
     const primary = product.images.find(img => img.is_primary)
     return primary ? primary.image_url : product.images[0].image_url
+  }
+
+  // Add to Cart functionality
+  async function handleAddToCart(e) {
+    e.preventDefault() // Prevent navigation to product page
+    e.stopPropagation()
+
+    const customerId = localStorage.getItem('customer_id')
+    
+    if (!customerId) {
+      router.push(`/auth/login?returnUrl=/products`)
+      return
+    }
+
+    setAddingToCart(true)
+
+    try {
+      // Check if item already in cart
+      const { data: existingItem, error: checkError } = await supabase
+        .from('cart_items')
+        .select('id, quantity')
+        .eq('customer_id', customerId)
+        .eq('product_id', product.id)
+        .maybeSingle()
+
+      if (checkError) throw checkError
+
+      if (existingItem) {
+        // Update quantity
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity: existingItem.quantity + 1 })
+          .eq('id', existingItem.id)
+
+        if (error) throw error
+      } else {
+        // Add new item
+        const { error } = await supabase
+          .from('cart_items')
+          .insert([{
+            customer_id: customerId,
+            product_id: product.id,
+            quantity: 1
+          }])
+
+        if (error) throw error
+      }
+
+      // Trigger cart update event for navbar
+      window.dispatchEvent(new Event('cart-updated'))
+
+      // Show success message
+      setShowMessage(true)
+      setTimeout(() => setShowMessage(false), 2000)
+    } catch (error) {
+      console.error('Add to cart error:', error)
+      alert('Failed to add to cart')
+    } finally {
+      setAddingToCart(false)
+    }
   }
 
   return (
@@ -72,9 +140,35 @@ export default function ProductCard({ product }) {
             </p>
           )}
 
-          {/* CTA */}
-          <div className="mt-auto">
-            <div className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent flex items-center group">
+          {/* Action Buttons */}
+          <div className="mt-auto space-y-2">
+            {/* Add to Cart Button */}
+            <button
+              onClick={handleAddToCart}
+              disabled={addingToCart}
+              className="w-full btn-primary py-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative"
+            >
+              {showMessage ? (
+                <span className="flex items-center justify-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Added!
+                </span>
+              ) : addingToCart ? (
+                'Adding...'
+              ) : (
+                <span className="flex items-center justify-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Add to Cart
+                </span>
+              )}
+            </button>
+
+            {/* View Details Link */}
+            <div className="text-center text-sm font-semibold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent flex items-center justify-center group">
               View Details
               <svg className="w-4 h-4 ml-1 text-blue-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
