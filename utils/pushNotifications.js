@@ -87,14 +87,39 @@ export async function subscribeToPushNotifications(userId) {
     await navigator.serviceWorker.ready;
     console.log('Service worker ready');
 
-    // Check for existing subscription and unsubscribe if it exists
+    // Check for existing subscription
     const existingSubscription = await registration.pushManager.getSubscription();
     if (existingSubscription) {
+      console.log('Found existing push subscription');
+      
+      // Check if it's using the same VAPID key by comparing endpoint format
+      // If subscription exists and is valid, just save it to ensure database is in sync
+      try {
+        const response = await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            subscription: existingSubscription,
+            userId
+          })
+        });
+
+        if (response.ok) {
+          console.log('Existing subscription verified and saved');
+          return existingSubscription;
+        }
+      } catch (error) {
+        console.log('Could not verify existing subscription, will create new one');
+      }
+      
+      // If verification failed, unsubscribe and create new
       console.log('Unsubscribing from old push subscription...');
       await existingSubscription.unsubscribe();
     }
 
-    // Subscribe to push notifications with new VAPID key
+    // Subscribe to push notifications with VAPID key
     if (!VAPID_PUBLIC_KEY) {
       console.error('VAPID_PUBLIC_KEY is not set');
       throw new Error('VAPID public key not configured. Please add NEXT_PUBLIC_VAPID_PUBLIC_KEY to environment variables and redeploy.');

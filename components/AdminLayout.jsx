@@ -47,13 +47,13 @@ export default function AdminLayout({ children }) {
         .then(async (registration) => {
           console.log('Service Worker registered successfully:', registration.scope);
           
-          // Subscribe to push notifications after service worker is registered
-          try {
-            await subscribeToPushNotifications(user.id);
-            console.log('Successfully subscribed to push notifications');
-          } catch (error) {
-            console.error('Failed to subscribe to push notifications:', error);
+          // Check if already subscribed before attempting to subscribe
+          // This prevents unsubscribing and resubscribing on every page load
+          const existingSubscription = await registration.pushManager.getSubscription();
+          if (existingSubscription) {
+            console.log('Already subscribed to push notifications');
           }
+          // Note: Don't auto-subscribe here - let user control it via Notifications settings page
         })
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
