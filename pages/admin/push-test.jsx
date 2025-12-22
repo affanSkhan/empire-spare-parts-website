@@ -155,6 +155,18 @@ export default function PushTest() {
       if (response.ok) {
         addLog('✓ Direct send successful', 'success')
         addLog(`Sent to ${data.successCount}/${data.totalSubscriptions} subscriptions`)
+        
+        // Show detailed error info if failed
+        if (data.successCount === 0 && data.results) {
+          addLog('⚠️ Push send failed - checking details...', 'error')
+          data.results.forEach((result, i) => {
+            if (!result.success) {
+              addLog(`  Error ${i + 1}: ${result.error}`, 'error')
+              if (result.statusCode) addLog(`  Status Code: ${result.statusCode}`, 'error')
+              if (result.body) addLog(`  Body: ${result.body}`, 'error')
+            }
+          })
+        }
       } else {
         addLog(`✗ Direct send failed: ${data.error}`, 'error')
       }

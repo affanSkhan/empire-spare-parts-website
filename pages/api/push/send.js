@@ -94,22 +94,28 @@ export default async function handler(req, res) {
 Admin
       try {
         console.log('Sending push to endpoint:', sub.endpoint.substring(0, 50) + '...');
+        console.log('Using VAPID public key:', vapidPublicKey?.substring(0, 20) + '...');
         await webpush.sendNotification(sub.subscription, payload)
-        console.log('✓ Push sent successfully');
+        console.log('✓ Push sent successfully to endpoint:', sub.endpoint.substring(0, 50));
         return { success: true, endpoint: sub.endpoint }
       } catch (error) {
-        console.error('✗ Error sending push notification:', error.message, 'Status:', error.statusCode);
+        console.error('✗ Error sending push notification:', {
+          message: error.message,
+          statusCode: error.statusCode,
+          endpoint: sub.endpoint.substring(0, 50),
+          body: error.body
+        });
         
         // If subscription is invalid, remove it
         if (error.statusCode === 410 || error.statusCode === 404) {
-          console.log('Removing invalid subscription');
-          await supabase
+          console.log('Removing invalid subscription (410/404)');
+          await supabaseAdmin
             .from('push_subscriptions')
             .delete()
             .eq('id', sub.id)
         }
         
-        return { success: false, endpoint: sub.endpoint, error: error.message, statusCode: error.statusCode }
+        return { success: false, endpoint: sub.endpoint, error: error.message, statusCode: error.statusCode, body: error.body }
       }
     })
 
