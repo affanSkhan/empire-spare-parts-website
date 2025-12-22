@@ -130,10 +130,34 @@ Admin
 
     console.log(`Push notifications result: ${successCount}/${subscriptions.length} successful`);
 
+    // Serialize results properly for JSON response
+    const serializedResults = results.map(r => {
+      if (r.status === 'fulfilled') {
+        if (!r.value.success) {
+          console.log('Failed push result:', JSON.stringify(r.value, null, 2))
+        }
+        return r.value
+      } else {
+        // Handle rejected promises
+        const reason = r.reason
+        console.log('Rejected push promise:', {
+          message: reason?.message,
+          statusCode: reason?.statusCode,
+          stack: reason?.stack
+        })
+        return {
+          success: false,
+          error: reason?.message || String(reason),
+          statusCode: reason?.statusCode,
+          body: reason?.body ? String(reason.body) : undefined
+        }
+      }
+    })
+
     res.status(200).json({ 
       success: successCount > 0,
       message: `Push notifications sent to ${successCount}/${subscriptions.length} subscriptions`,
-      results: results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: r.reason }),
+      results: serializedResults,
       totalSubscriptions: subscriptions.length,
       successCount
     })
