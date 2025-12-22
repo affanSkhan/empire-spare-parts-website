@@ -160,12 +160,11 @@ DECLARE
   order_data RECORD;
 BEGIN
   -- Get order details if invoice is linked to an order
-  IF NEW.invoice_id IS NOT NULL THEN
-    SELECT o.customer_id, o.order_number INTO order_data
-    FROM orders o
-    WHERE o.invoice_id = NEW.id
-    LIMIT 1;
-  END IF;
+  -- Check if any order references this invoice
+  SELECT o.customer_id, o.order_number INTO order_data
+  FROM orders o
+  WHERE o.invoice_id = NEW.id
+  LIMIT 1;
 
   -- Notify admin
   INSERT INTO notifications (title, message, type, category, link, metadata, recipient_type, recipient_id)

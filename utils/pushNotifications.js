@@ -2,8 +2,10 @@
 // Handles subscription and sending push notifications
 
 // Use the public VAPID key from environment variables
-// This will be the same key you generated with web-push
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+// In browser context, Next.js injects this at build time
+const VAPID_PUBLIC_KEY = typeof window !== 'undefined' 
+  ? process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY 
+  : null;
 
 /**
  * Convert VAPID key from base64 to Uint8Array
@@ -87,6 +89,10 @@ export async function subscribeToPushNotifications(userId) {
     }
 
     // Subscribe to push notifications with new VAPID key
+    if (!VAPID_PUBLIC_KEY) {
+      throw new Error('VAPID public key not found. Please check your environment variables.');
+    }
+    
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
