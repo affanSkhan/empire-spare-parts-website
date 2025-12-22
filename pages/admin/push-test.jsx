@@ -177,32 +177,7 @@ export default function PushTest() {
     }
   }
 
-  async {/* Enable/Disable Push Button - Prominent */}
-        <div className="mb-6 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-lg">Push Notifications</h3>
-              <p className="text-sm text-gray-600">
-                {isSubscribed 
-                  ? '✓ Enabled - This device will receive push notifications' 
-                  : '✗ Disabled - Enable to receive push notifications on this device'}
-              </p>
-            </div>
-            <button
-              onClick={isSubscribed ? disablePush : enablePush}
-              disabled={loading}
-              className={`px-6 py-3 rounded-lg font-semibold disabled:opacity-50 transition-all ${
-                isSubscribed 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
-                  : 'bg-green-600 hover:bg-green-700 text-white'
-              }`}
-            >
-              {isSubscribed ? 'Disable Push' : 'Enable Push'}
-            </button>
-          </div>
-        </div>
-
-        function checkServiceWorker() {
+  async function checkServiceWorker() {
     addLog('Checking service worker...')
     try {
       const registration = await navigator.serviceWorker.getRegistration()
@@ -248,6 +223,32 @@ export default function PushTest() {
       </Head>
 
       <div className="max-w-4xl">
+        <h1 className="text-2xl font-bold mb-6">Push Notification Test Suite</h1>
+
+        {/* Enable/Disable Push Button - Prominent */}
+        <div className="mb-6 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-lg">Push Notifications</h3>
+              <p className="text-sm text-gray-600">
+                {isSubscribed 
+                  ? '✓ Enabled - This device will receive push notifications' 
+                  : '✗ Disabled - Enable to receive push notifications on this device'}
+              </p>
+            </div>
+            <button
+              onClick={isSubscribed ? disablePush : enablePush}
+              disabled={loading}
+              className={`px-6 py-3 rounded-lg font-semibold disabled:opacity-50 transition-all ${
+                isSubscribed 
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
+            >
+              {isSubscribed ? 'Disable Push' : 'Enable Push'}
+            </button>
+          </div>
+        </div>
         <h1 className="text-2xl font-bold mb-6">Push Notification Test Suite</h1>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
