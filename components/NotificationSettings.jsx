@@ -88,16 +88,22 @@ export default function NotificationSettings({ userId }) {
     setError(null);
     
     try {
+      console.log('Sending test notification...');
       const response = await fetch('/api/push/test', { method: 'POST' });
       const data = await response.json();
       
-      if (response.ok) {
-        alert('Test notification sent! Check your device (works even when app is closed)');
+      console.log('Test notification response:', data);
+      
+      if (response.ok && data.success) {
+        alert(`✓ Test notification sent successfully!\n\n${data.data?.message || ''}\n\nSuccessful: ${data.data?.successCount || 0}/${data.data?.totalSubscriptions || 0}\n\nCheck your device for the notification (works even when app is closed)`);
       } else {
-        setError(data.error || 'Failed to send test notification');
+        const errorMsg = data.error || data.data?.error || 'Failed to send test notification';
+        console.error('Test notification failed:', errorMsg);
+        setError(errorMsg);
       }
     } catch (err) {
-      setError('Failed to send test notification');
+      console.error('Test notification error:', err);
+      setError('Failed to send test notification: ' + err.message);
     } finally {
       setLoading(false);
     }

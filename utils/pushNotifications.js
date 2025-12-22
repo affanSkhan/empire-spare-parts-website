@@ -177,16 +177,23 @@ export async function unsubscribeFromPushNotifications(userId) {
 export async function isPushSubscribed() {
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('Push not supported in browser');
       return false;
     }
 
     const registration = await navigator.serviceWorker.getRegistration();
     if (!registration) {
+      console.log('No service worker registration found');
       return false;
     }
 
     const subscription = await registration.pushManager.getSubscription();
-    return subscription !== null;
+    const isSubscribed = subscription !== null;
+    console.log('Push subscription check:', isSubscribed ? 'Subscribed' : 'Not subscribed');
+    if (isSubscribed) {
+      console.log('Subscription endpoint:', subscription.endpoint);
+    }
+    return isSubscribed;
 
   } catch (error) {
     console.error('Error checking push subscription:', error);
