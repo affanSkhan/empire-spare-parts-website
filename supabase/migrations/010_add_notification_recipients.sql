@@ -211,6 +211,13 @@ $$ LANGUAGE plpgsql;
 -- Enable Row Level Security for notifications
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Admins can view all notifications" ON notifications;
+DROP POLICY IF EXISTS "Customers can view their notifications" ON notifications;
+DROP POLICY IF EXISTS "Customers can view broadcast notifications" ON notifications;
+DROP POLICY IF EXISTS "Admins can manage notifications" ON notifications;
+DROP POLICY IF EXISTS "Customers can update their notifications" ON notifications;
+
 -- Admin can see all notifications
 CREATE POLICY "Admins can view all notifications" ON notifications
   FOR SELECT
