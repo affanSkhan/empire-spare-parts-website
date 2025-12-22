@@ -6,11 +6,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { limit = 50, unreadOnly = false } = req.query
+    const { limit = 50, unreadOnly = false, recipientType = 'admin' } = req.query
 
     let query = supabase
       .from('notifications')
       .select('*')
+      .eq('recipient_type', recipientType) // Filter by recipient type (admin/customer)
       .order('created_at', { ascending: false })
       .limit(parseInt(limit))
 
@@ -22,10 +23,11 @@ export default async function handler(req, res) {
 
     if (error) throw error
 
-    // Get unread count
+    // Get unread count for this recipient type
     const { count: unreadCount } = await supabase
       .from('notifications')
       .select('*', { count: 'exact', head: true })
+      .eq('recipient_type', recipientType)
       .eq('is_read', false)
 
     res.status(200).json({ 

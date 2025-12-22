@@ -39,12 +39,18 @@ export default function NotificationBell() {
   useEffect(() => {
     fetchNotifications()
 
-    // Subscribe to new notifications
+    // Subscribe to new notifications - FILTER FOR ADMIN ONLY
     const channel = supabase
-      .channel('notifications')
+      .channel('admin-notifications')
       .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: 'recipient_type=eq.admin'
+        },
         (payload) => {
+          console.log('New admin notification received:', payload.new);
           setNotifications(prev => [payload.new, ...prev].slice(0, 10))
           setUnreadCount(prev => prev + 1)
           
@@ -59,15 +65,23 @@ export default function NotificationBell() {
         }
       )
       .on('postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'notifications' },
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: 'recipient_type=eq.admin'
+        },
         (payload) => {
+          console.log('Admin notification updated:', payload.new);
           setNotifications(prev => 
             prev.map(n => n.id === payload.new.id ? payload.new : n)
           )
           fetchNotifications() // Refresh unread count
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Admin notification subscription status:', status);
+      })
 
     return () => {
       supabase.removeChannel(channel)
