@@ -55,8 +55,11 @@ export async function initNativePush() {
           return;
         }
 
-        // Save FCM token to backend
-        const response = await fetch('/api/push/subscribe-native', {
+        // Native app must call the live server API (not local API route)
+        const apiUrl = 'https://www.empirecarac.in/api/push/subscribe-native';
+        console.log('[Native Push] Saving token to:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -67,9 +70,12 @@ export async function initNativePush() {
         });
 
         if (response.ok) {
-          console.log('[Native Push] Token saved to backend');
+          console.log('[Native Push] Token saved to backend successfully');
+          const data = await response.json();
+          console.log('[Native Push] Response:', data);
         } else {
-          console.error('[Native Push] Failed to save token');
+          const errorText = await response.text();
+          console.error('[Native Push] Failed to save token:', response.status, errorText);
         }
       } catch (error) {
         console.error('[Native Push] Error saving token:', error);
