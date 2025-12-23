@@ -1,5 +1,5 @@
 // Service Worker for Empire Spare Parts Admin Dashboard PWA
-const CACHE_NAME = 'empire-admin-v1';
+const CACHE_NAME = 'empire-admin-v2';
 const ADMIN_ROUTES = [
   '/admin',
   '/admin/orders',
@@ -18,32 +18,39 @@ const STATIC_ASSETS = [
 
 // Install event - cache essential admin assets
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
+  console.log('[Service Worker] Installing v2...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching static assets');
-      return cache.addAll(STATIC_ASSETS);
+      return cache.addAll(STATIC_ASSETS).catch(err => {
+        console.error('[Service Worker] Failed to cache assets:', err);
+      });
     })
   );
+  // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
+  console.log('[Service Worker] Activating v2...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('[Service Worker] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Take control of all pages immediately
+      self.clients.claim()
+    ])
   );
-  self.clients.claim();
 });
 
 // Fetch event - network first, fallback to cache
@@ -105,65 +112,110 @@ self.addEventListener('sync', (event) => {
   }
 });
 
+// Keep service worker alive with periodic sync (if supported)
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'check-notifications') {
+    console.log('[Service Worker] Periodic sync triggered');
+    event.waitUntil(
+      // This keeps the service worker alive
+      Promise.resolve()
+    );
+  }
+});
+
+// Handle messages from clients
+self.addEventListener('message', (event) => {
+  console.log('[Service Worker] Message received:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CLAIM_CLIENTS') {
+    self.clients.claim();
+  }
+});
+
 // Push notification handler with sound and vibration
 self.addEventListener('push', (event) => {
-  console.log('[Service Worker] Push notification received!');
+  console.log('[Service Worker] Push notification received!', new Date().toISOString());
   console.log('[Service Worker] Push event:', event);
   
-  if (!event.data) {
+  let notificationData = {
+    title: 'Empire Car A/C',
+    body: 'New notification',
+    url: '/admin'
+  };
+
+  if (event.data) {
+    try {
+      notificationData = event.data.json();
+      console.log('[Service Worker] Push data:', notificationData);
+    } catch (error) {
+      console.error('[Service Worker] Error parsing push data:', error);
+      // Use default notification if parsing fails
+    }
+  } else {
     console.log('[Service Worker] No data in push event');
-    return;
   }
 
-  try {
-    const data = event.data.json();
-    console.log('[Service Worker] Push data:', data);
-    
-    const options = {
-      body: data.body || data.message || 'New notification',
-      icon: '/android-chrome-192x192.png',
-      badge: '/favicon-32x32.png',
-      image: data.image,
-      vibrate: [300, 100, 200, 100, 300], // Vibration pattern
-      tag: data.tag || 'notification-' + Date.now(),
-      requireInteraction: true, // Keeps notification visible until user interacts
-      renotify: true, // Re-alert even if same tag
-      silent: false, // Play sound
-      data: {
-        url: data.url || data.link || '/admin',
-        notificationId: data.id,
+  const options = {
+    body: notificationData.body || notificationData.message || 'New notification',
+    icon: '/android-chrome-192x192.png',
+    badge: '/favicon-32x32.png',
+    image: notificationData.image,
+    vibrate: [300, 100, 200, 100, 300], // Vibration pattern
+    tag: notificationData.tag || 'empire-notification',
+    requireInteraction: true, // Keeps notification visible until user interacts
+    renotify: true, // Re-alert even if same tag
+    silent: false, // Play sound
+    data: {
+      url: notificationData.url || notificationData.link || '/admin',
+      notificationId: notificationData.id,
+      timestamp: Date.now()
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'View'
       },
-      actions: [
-        {
-          action: 'open',
-          title: 'View',
-          icon: '/favicon-32x32.png'
-        },
-        {
-          action: 'close',
-          title: 'Dismiss',
-          icon: '/favicon-32x32.png'
-        }
-      ],
-      // Additional options for better mobile support
-      timestamp: data.timestamp || Date.now(),
-    };
+      {
+        action: 'close',
+        title: 'Dismiss'
+      }
+    ],
+    // Additional options for better mobile support
+    timestamp: notificationData.timestamp || Date.now(),
+  };
 
-    console.log('[Service Worker] Showing notification with options:', options);
+  console.log('[Service Worker] Showing notification with options:', options);
 
-    event.waitUntil(
-      self.registration.showNotification(
-        data.title || 'Empire Car A/C', 
-        options
-      ).then(() => {
-        console.log('[Service Worker] Notification displayed successfully');
-      }).catch(error => {
-        console.error('[Service Worker] Error showing notification:', error);
-      })
-    );
-  } catch (error) {
-    console.error('[Service Worker] Error parsing push data:', error);
-  }
+  // Show notification and keep service worker alive
+  event.waitUntil(
+    self.registration.showNotification(
+      notificationData.title || 'Empire Car A/C', 
+      options
+    ).then(() => {
+      console.log('[Service Worker] Notification displayed successfully at', new Date().toISOString());
+      // Send a message to all clients that notification was received
+      return self.clients.matchAll({ includeUncontrolled: true, type: 'window' })
+        .then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'PUSH_RECEIVED',
+              notification: notificationData
+            });
+          });
+        });
+    }).catch(error => {
+      console.error('[Service Worker] Error showing notification:', error);
+      // Try to show a basic notification as fallback
+      return self.registration.showNotification('Empire Car A/C', {
+        body: 'You have a new notification',
+        icon: '/android-chrome-192x192.png'
+      });
+    })
+  );
 });
 
 // Notification click handler
