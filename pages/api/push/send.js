@@ -92,10 +92,22 @@ export default async function handler(req, res) {
         timestamp: Date.now()
       })
 
+      // CRITICAL: Options for background delivery
+      const pushOptions = {
+        TTL: 86400, // Time to live: 24 hours (message persists if device offline)
+        urgency: 'high', // High urgency ensures immediate delivery and wakes device
+        topic: 'empire-order-notification', // Topic for deduplication
+        headers: {
+          'Urgency': 'high' // Redundant but ensures header is set
+        }
+      }
+
       try {
         console.log('Sending push to endpoint:', sub.endpoint.substring(0, 50) + '...');
-        console.log('Using VAPID public key:', vapidPublicKey?.substring(0, 20) + '...');
-        await webpush.sendNotification(sub.subscription, payload)
+        console.log('Push options:', JSON.stringify(pushOptions));
+        console.log('Payload size:', payload.length, 'bytes');
+        
+        await webpush.sendNotification(sub.subscription, payload, pushOptions)
         console.log('✓ Push sent successfully to endpoint:', sub.endpoint.substring(0, 50));
         return { success: true, endpoint: sub.endpoint }
       } catch (error) {

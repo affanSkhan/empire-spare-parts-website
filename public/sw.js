@@ -1,5 +1,11 @@
 // Service Worker for Empire Spare Parts Admin Dashboard PWA
-const CACHE_NAME = 'empire-admin-v4';
+// VERSION 5 - Critical fix for background push notifications
+const CACHE_NAME = 'empire-admin-v5';
+const SW_VERSION = '5.0.0';
+
+// Log immediately when service worker script runs
+console.log('[Service Worker] Script loaded, version:', SW_VERSION);
+
 const ADMIN_ROUTES = [
   '/admin',
   '/admin/orders',
@@ -18,7 +24,7 @@ const STATIC_ASSETS = [
 
 // Install event - cache essential admin assets
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing v4...');
+  console.log('[Service Worker] Installing v5...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching static assets');
@@ -33,7 +39,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating v4...');
+  console.log('[Service Worker] Activating v5...');
   event.waitUntil(
     Promise.all([
       // Clean up old caches
@@ -273,3 +279,30 @@ self.addEventListener('notificationclick', (event) => {
       })
   );
 });
+
+// Handle push subscription changes (renewal, expiration)
+self.addEventListener('pushsubscriptionchange', (event) => {
+  console.log('[Service Worker] Push subscription changed!');
+  console.log('[Service Worker] Old subscription:', event.oldSubscription);
+  console.log('[Service Worker] New subscription:', event.newSubscription);
+  
+  // Re-subscribe automatically
+  event.waitUntil(
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: event.oldSubscription?.options?.applicationServerKey
+    })
+    .then(subscription => {
+      console.log('[Service Worker] Re-subscribed successfully');
+      // Note: In production, you'd want to send this to your server
+      return subscription;
+    })
+    .catch(err => {
+      console.error('[Service Worker] Failed to re-subscribe:', err);
+    })
+  );
+});
+
+// Log that service worker is ready for push
+console.log('[Service Worker] Push notification handler registered');
+console.log('[Service Worker] Ready to receive push messages');
