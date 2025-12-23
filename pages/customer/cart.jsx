@@ -161,7 +161,8 @@ export default function CartPage() {
 
       // Send push notification to admins about new order
       try {
-        await fetch('/api/push/send', {
+        console.log('🔔 Sending push notification for order:', orderNumber)
+        const pushResponse = await fetch('/api/push/send', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -173,9 +174,18 @@ export default function CartPage() {
             userType: 'admin'
           })
         })
+
+        const pushResult = await pushResponse.json()
+        console.log('🔔 Push notification response:', pushResult)
+
+        if (!pushResponse.ok) {
+          console.error('❌ Push notification failed:', pushResult)
+        } else if (pushResult.sent) {
+          console.log(`✅ Push notification sent to ${pushResult.successCount}/${pushResult.totalSubscriptions} devices`)
+        }
       } catch (pushError) {
         // Don't fail the order if push notification fails
-        console.warn('Failed to send push notification:', pushError)
+        console.error('❌ Push notification error:', pushError)
       }
 
       // Trigger cart update event for navbar
