@@ -9,8 +9,10 @@ const ADMIN_ROUTES = [
 ];
 
 const STATIC_ASSETS = [
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
+  '/apple-touch-icon.png',
+  '/favicon-32x32.png',
   '/manifest.json',
 ];
 
@@ -119,8 +121,8 @@ self.addEventListener('push', (event) => {
     
     const options = {
       body: data.body || data.message || 'New notification',
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-72x72.png',
+      icon: '/android-chrome-192x192.png',
+      badge: '/favicon-32x32.png',
       image: data.image,
       vibrate: [300, 100, 200, 100, 300], // Vibration pattern
       tag: data.tag || 'notification-' + Date.now(),
@@ -135,12 +137,12 @@ self.addEventListener('push', (event) => {
         {
           action: 'open',
           title: 'View',
-          icon: '/icons/icon-72x72.png'
+          icon: '/favicon-32x32.png'
         },
         {
           action: 'close',
           title: 'Dismiss',
-          icon: '/icons/icon-72x72.png'
+          icon: '/favicon-32x32.png'
         }
       ],
       // Additional options for better mobile support
