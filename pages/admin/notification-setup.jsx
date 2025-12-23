@@ -103,6 +103,46 @@ export default function NotificationSetup() {
     }
   }
 
+  const forceRefreshSubscription = async () => {
+    try {
+      addLog('🔄 Force refreshing subscription...', 'info')
+      
+      // Unregister all service workers first
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      for (let reg of registrations) {
+        await reg.unregister()
+        addLog('✓ Unregistered old service worker', 'info')
+      }
+
+      // Unsubscribe from existing push
+      const tempReg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      const oldSub = await tempReg.pushManager.getSubscription()
+      if (oldSub) {
+        await oldSub.unsubscribe()
+        addLog('✓ Unsubscribed from old push', 'info')
+      }
+
+      // Wait a moment
+      await new Promise(r => setTimeout(r, 1000))
+
+      // Re-register service workers
+      addLog('📥 Re-registering service workers...', 'info')
+      const mainReg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      addLog(`✓ Main SW registered: ${mainReg.scope}`, 'success')
+
+      // Wait for activation
+      await navigator.serviceWorker.ready
+      addLog('✓ Service worker active', 'success')
+
+      // Now subscribe
+      addLog('🔔 Creating new push subscription...', 'info')
+      await enableNotifications()
+
+    } catch (error) {
+      addLog(`❌ Error: ${error.message}`, 'error')
+    }
+  }
+
   const enableNotifications = async () => {
     try {
       addLog('🔔 Requesting notification permission...', 'info')
@@ -316,6 +356,13 @@ export default function NotificationSetup() {
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold"
           >
             Update Service Worker
+          </button>
+          
+          <button
+            onClick={forceRefreshSubscription}
+            className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold"
+          >
+            🔄 Force Refresh All
           </button>
           
           <button

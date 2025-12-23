@@ -13,6 +13,8 @@ const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY
 
 if (!vapidPublicKey || !vapidPrivateKey) {
   console.error('VAPID keys not configured!')
+} else {
+  console.log('VAPID keys configured successfully')
 }
 
 webpush.setVapidDetails(
@@ -26,10 +28,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  try {
-    const { title, message, url, userId, userType = 'admin' } = req.body
+  const startTime = Date.now();
+  console.log('=== Push Send API Called ===');
+  console.log('Timestamp:', new Date().toISOString());
 
-    console.log('Push send API called:', { title, message, url, userId, userType });
+  try {
+    const { title, message, url, userId, userType = 'admin', tag } = req.body
+
+    console.log('Request body:', JSON.stringify({ title, message, url, userId, userType, tag }));
 
     // Verify VAPID keys are set
     if (!vapidPublicKey || !vapidPrivateKey) {
@@ -78,8 +84,16 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'No push subscriptions found. Please enable notifications first.' })
     }
 
+    // Log all subscription endpoints
+    subscriptions.forEach((sub, i) => {
+      console.log(`Subscription ${i + 1}: ${sub.endpoint?.substring(0, 60)}...`);
+    });
+
     // Send push notification to all subscriptions
-    const pushPromises = subscriptions.map(async (sub) => {
+    const pushPromises = subscriptions.map(async (sub, index) => {
+      // Unique tag for each notification to prevent deduplication issues
+      const uniqueTag = `empire-${Date.now()}-${index}`;
+      
       const payload = JSON.stringify({
         title: title || 'Empire Car A/C',
         body: message || 'You have a new notification',
@@ -88,30 +102,26 @@ export default async function handler(req, res) {
         link: url || '/admin',
         icon: '/Empire Car Ac  Logo Design.jpg',
         badge: '/favicon-32x32.png',
-        tag: 'empire-notification',
+        tag: uniqueTag,
         timestamp: Date.now()
       })
 
-      // CRITICAL: Options for background delivery
+      // CRITICAL: Options for background delivery - FCM requires specific headers
       const pushOptions = {
-        TTL: 86400, // Time to live: 24 hours (message persists if device offline)
-        urgency: 'high', // High urgency ensures immediate delivery and wakes device
-        topic: 'empire-order-notification', // Topic for deduplication
-        headers: {
-          'Urgency': 'high' // Redundant but ensures header is set
-        }
+        TTL: 2419200, // 28 days - maximum allowed by FCM
+        urgency: 'high', // HIGH urgency wakes device from doze mode
+        topic: 'empire-order-' + Date.now(), // Unique topic to prevent FCM deduplication
       }
 
       try {
-        console.log('Sending push to endpoint:', sub.endpoint.substring(0, 50) + '...');
-        console.log('Push options:', JSON.stringify(pushOptions));
-        console.log('Payload size:', payload.length, 'bytes');
+        console.log(`[${index + 1}] Sending push to: ${sub.endpoint?.substring(0, 60)}...`);
+        console.log(`[${index + 1}] TTL: ${pushOptions.TTL}, Urgency: ${pushOptions.urgency}`);
         
-        await webpush.sendNotification(sub.subscription, payload, pushOptions)
-        console.log('✓ Push sent successfully to endpoint:', sub.endpoint.substring(0, 50));
-        return { success: true, endpoint: sub.endpoint }
+        const result = await webpush.sendNotification(sub.subscription, payload, pushOptions)
+        console.log(`[${index + 1}] ✓ Push sent! Status: ${result.statusCode}`);
+        return { success: true, endpoint: sub.endpoint, statusCode: result.statusCode }
       } catch (error) {
-        console.error('✗ Error sending push notification:', {
+        console.error(`[${index + 1}] ✗ Push failed:`, {
           message: error.message,
           statusCode: error.statusCode,
           endpoint: sub.endpoint.substring(0, 50),

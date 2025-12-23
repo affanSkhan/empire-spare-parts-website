@@ -97,48 +97,36 @@ export async function subscribeToPushNotifications(userId) {
       throw new Error('Notification permission not granted');
     }
 
-    // Register service worker if not already registered
-    let registration = await navigator.serviceWorker.getRegistration();
-    if (!registration) {
-      console.log('Registering service worker...');
-      registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered for push notifications');
-    }
+    // Register service worker with root scope
+    console.log('Registering service worker with root scope...');
+    const registration = await navigator.serviceWorker.register('/sw.js', { 
+      scope: '/',
+      updateViaCache: 'none'  // Always fetch fresh SW
+    });
+    console.log('Service Worker registered:', registration.scope);
 
-    // Wait for service worker to be ready
+    // Wait for service worker to be ready and active
     await navigator.serviceWorker.ready;
     console.log('Service worker ready');
 
-    // Check for existing subscription
+    // Wait for it to be active
+    if (registration.installing) {
+      console.log('Waiting for SW to install...');
+      await new Promise((resolve) => {
+        registration.installing.addEventListener('statechange', function() {
+          if (this.state === 'activated') {
+            resolve();
+          }
+        });
+      });
+    }
+
+    // Check for existing subscription and ALWAYS unsubscribe to get fresh one
     const existingSubscription = await registration.pushManager.getSubscription();
     if (existingSubscription) {
-      console.log('Found existing push subscription');
-      
-      // Check if it's using the same VAPID key by comparing endpoint format
-      // If subscription exists and is valid, just save it to ensure database is in sync
-      try {
-        const response = await fetch('/api/push/subscribe', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            subscription: existingSubscription,
-            userId
-          })
-        });
-
-        if (response.ok) {
-          console.log('Existing subscription verified and saved');
-          return existingSubscription;
-        }
-      } catch (error) {
-        console.log('Could not verify existing subscription, will create new one');
-      }
-      
-      // If verification failed, unsubscribe and create new
-      console.log('Unsubscribing from old push subscription...');
+      console.log('Found existing subscription, unsubscribing to get fresh one...');
       await existingSubscription.unsubscribe();
+      console.log('Unsubscribed from old subscription');
     }
 
     // Subscribe to push notifications with VAPID key
@@ -147,12 +135,17 @@ export async function subscribeToPushNotifications(userId) {
       throw new Error('VAPID public key not configured. Please add NEXT_PUBLIC_VAPID_PUBLIC_KEY to environment variables and redeploy.');
     }
     
-    console.log('Subscribing to push manager...');
+    console.log('Creating new push subscription...');
+    console.log('VAPID key (first 20 chars):', VAPID_PUBLIC_KEY.substring(0, 20) + '...');
+    
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
-    console.log('Push subscription created:', subscription.endpoint);
+    
+    console.log('Push subscription created!');
+    console.log('Endpoint:', subscription.endpoint);
+    console.log('Keys present:', !!subscription.getKey('p256dh'), !!subscription.getKey('auth'));
 
     // Save subscription to backend
     console.log('Saving subscription to backend with userId:', actualUserId);
