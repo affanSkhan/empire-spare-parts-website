@@ -166,7 +166,7 @@ export default function NotificationSetup() {
 
       const result = await response.json()
       
-      if (result.sent) {
+      if (result.success || result.sent) {
         addLog(`✓ Test sent to ${result.successCount}/${result.totalSubscriptions} devices`, 'success')
         addLog('💡 Check if you received the notification (even with page closed)', 'info')
       } else {
