@@ -196,6 +196,37 @@ export default function NotificationSetup() {
     }
   }
 
+  const testFullOrderFlow = async () => {
+    try {
+      addLog('🧪 Testing full order notification flow...', 'info')
+      addLog('This simulates what happens when a customer places an order', 'info')
+      
+      const response = await fetch('/api/test-order-notification', {
+        method: 'POST'
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        addLog('✓ Full flow test completed successfully!', 'success')
+        addLog(`  Database notification created: ${result.notification.id}`, 'success')
+        addLog(`  Push sent to: ${result.pushResult.successCount}/${result.pushResult.totalSubscriptions} devices`, result.pushResult.success ? 'success' : 'error')
+        
+        if (result.pushResult.success) {
+          addLog('💡 Check if you received the push notification', 'info')
+          addLog('💡 If not, the issue is with browser/service worker setup', 'warning')
+        } else {
+          addLog(`❌ Push failed: ${result.pushResult.message}`, 'error')
+        }
+      } else {
+        addLog(`❌ Test failed at step: ${result.step}`, 'error')
+        addLog(`Error: ${result.error}`, 'error')
+      }
+    } catch (error) {
+      addLog(`❌ Error: ${error.message}`, 'error')
+    }
+  }
+
   if (authLoading) {
     return (
       <AdminLayout>
@@ -269,6 +300,14 @@ export default function NotificationSetup() {
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             Send Test
+          </button>
+          
+          <button
+            onClick={testFullOrderFlow}
+            disabled={!status.subscribed}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+          >
+            Test Order Flow
           </button>
           
           <button
