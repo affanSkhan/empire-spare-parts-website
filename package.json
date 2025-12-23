@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:capacitor": "powershell -ExecutionPolicy Bypass -File ./build-capacitor.ps1",
     "start": "next start",
     "lint": "next lint"
   },
