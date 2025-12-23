@@ -1,6 +1,65 @@
 import '@/styles/globals.css'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { isNativeApp, initNativePush } from '@/utils/nativePushNotifications'
+
+/**
+ * Error Boundary Component
+ */
+function ErrorBoundary({ children }) {
+  const [hasError, setHasError] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const handleError = (event) => {
+      console.error('[Global Error]:', event.error)
+      setHasError(true)
+      setError(event.error)
+      event.preventDefault()
+    }
+
+    const handleRejection = (event) => {
+      console.error('[Unhandled Rejection]:', event.reason)
+      event.preventDefault()
+    }
+
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleRejection)
+
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleRejection)
+    }
+  }, [])
+
+  if (hasError) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h1>Something went wrong</h1>
+        <p>{error?.message || 'An unexpected error occurred'}</p>
+        <button 
+          onClick={() => {
+            setHasError(false)
+            setError(null)
+            window.location.reload()
+          }}
+          style={{ 
+            padding: '10px 20px', 
+            marginTop: '20px',
+            background: '#0070f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
+          Reload App
+        </button>
+      </div>
+    )
+  }
+
+  return children
+}
 
 /**
  * Main App Component
@@ -51,5 +110,9 @@ export default function App({ Component, pageProps }) {
     }
   }, []);
 
-  return <Component {...pageProps} />
+  return (
+    <ErrorBoundary>
+      <Component {...pageProps} />
+    </ErrorBoundary>
+  )
 }
