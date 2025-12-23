@@ -1,4 +1,9 @@
-import { supabaseAdmin } from '@/lib/supabaseClient'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -85,7 +90,13 @@ export default async function handler(req, res) {
 
     // Step 6: Send push notification
     console.log('Attempting to send push notification...')
-    const pushResponse = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('supabase.co', 'vercel.app') || 'http://localhost:3000'}/api/push/send`, {
+    
+    // Use the base URL from the request to call our own API
+    const protocol = req.headers['x-forwarded-proto'] || 'http'
+    const host = req.headers['host']
+    const baseUrl = `${protocol}://${host}`
+    
+    const pushResponse = await fetch(`${baseUrl}/api/push/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
