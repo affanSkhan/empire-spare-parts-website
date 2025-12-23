@@ -180,8 +180,10 @@ export default function CartPage() {
 
         if (!pushResponse.ok) {
           console.error('❌ Push notification failed:', pushResult)
-        } else if (pushResult.sent) {
+        } else if (pushResult.success) {
           console.log(`✅ Push notification sent to ${pushResult.successCount}/${pushResult.totalSubscriptions} devices`)
+        } else {
+          console.error('❌ Push notification not sent:', pushResult.message)
         }
       } catch (pushError) {
         // Don't fail the order if push notification fails

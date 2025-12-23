@@ -86,9 +86,9 @@ export default async function handler(req, res) {
         message: message,
         url: url || '/admin',
         link: url || '/admin',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-72x72.png',
-        tag: 'notification-' + Date.now(),
+        icon: '/Empire Car Ac  Logo Design.jpg',
+        badge: '/favicon-32x32.png',
+        tag: 'empire-notification',
         timestamp: Date.now()
       })
 

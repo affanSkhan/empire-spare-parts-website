@@ -1,5 +1,5 @@
 // Service Worker for Empire Spare Parts Admin Dashboard PWA
-const CACHE_NAME = 'empire-admin-v2';
+const CACHE_NAME = 'empire-admin-v3';
 const ADMIN_ROUTES = [
   '/admin',
   '/admin/orders',
@@ -18,7 +18,7 @@ const STATIC_ASSETS = [
 
 // Install event - cache essential admin assets
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing v2...');
+  console.log('[Service Worker] Installing v3...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching static assets');
@@ -33,7 +33,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating v2...');
+  console.log('[Service Worker] Activating v3...');
   event.waitUntil(
     Promise.all([
       // Clean up old caches
