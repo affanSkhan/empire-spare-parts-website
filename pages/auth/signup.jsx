@@ -10,6 +10,7 @@ import useSimpleAuth from '@/hooks/useSimpleAuth'
 /**
  * Customer Signup Page
  * Allows new customers to create an account with mobile OTP
+ * Includes WhatsApp availability verification
  */
 export default function SignupPage() {
   const router = useRouter()
@@ -18,10 +19,10 @@ export default function SignupPage() {
     name: '',
     phone: '',
     password: '',
-    confirmPassword: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [whatsappStatus, setWhatsappStatus] = useState(null)
 
   const handleChange = (e) => {
     setFormData({
@@ -29,6 +30,10 @@ export default function SignupPage() {
       [e.target.name]: e.target.value,
     })
     setError('')
+  }
+
+  const handleWhatsAppStatus = (status) => {
+    setWhatsappStatus(status)
   }
 
   const handleSubmit = async (e) => {
@@ -45,15 +50,41 @@ export default function SignupPage() {
       return
     }
 
+    // Check WhatsApp availability if verification was performed
+    if (whatsappStatus && !whatsappStatus.available) {
+      if (whatsappStatus.reason === 'duplicate') {
+        setError('This phone number is already registered. Please use a different number or try logging in.')
+      } else if (whatsappStatus.error) {
+        setError('Could not verify phone number. Please check your internet connection and try again.')
+      } else {
+        setError(whatsappStatus.message || 'Please enter a valid 10-digit mobile number that is available on WhatsApp')
+      }
+      return
+    }
+
+    // Additional validation for phone number format
+    if (formData.phone) {
+      const phoneDigits = formData.phone.replace(/\D/g, '')
+      // Check if it's an Indian number (most common case)
+      if (formData.phone.startsWith('+91')) {
+        const indianNumber = phoneDigits.substring(2) // Remove 91
+        if (indianNumber.length !== 10) {
+          setError('Please enter a valid 10-digit Indian mobile number')
+          return
+        }
+        if (!/^[6-9]/.test(indianNumber)) {
+          setError('Indian mobile numbers must start with 6, 7, 8, or 9')
+          return
+        }
+      }
+    }
+
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters')
       return
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
+    setLoading(true)
 
     setLoading(true)
     
@@ -118,10 +149,13 @@ export default function SignupPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="1234567890"
                     required
+                    showWhatsAppCheck={true}
+                    onWhatsAppStatus={handleWhatsAppStatus}
                   />
-                  <p className="text-xs text-gray-500 mt-1">This will be your login username</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter 10-digit mobile number (will be your login username)
+                  </p>
                 </div>
 
                 <div>
@@ -139,21 +173,6 @@ export default function SignupPage() {
                     minLength={6}
                   />
                   <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
-                </div>
-
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password *
-                  </label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="input-field"
-                    required
-                  />
                 </div>
 
                 <button
