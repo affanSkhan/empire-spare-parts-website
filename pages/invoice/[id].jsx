@@ -264,7 +264,7 @@ export default function PublicInvoicePage() {
           <title>Invoice Not Found - Empire Car A/C</title>
         </Head>
         <Navbar />
-        <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 py-12">
+        <main className="min-h-screen bg-[#f4f2ee] py-12">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
               <div className="bg-white rounded-xl shadow-lg p-8">
@@ -296,7 +296,7 @@ export default function PublicInvoicePage() {
 
       <Navbar />
 
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 py-8">
+      <main className="min-h-screen bg-[#f4f2ee] py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* Header Actions */}
@@ -348,7 +348,7 @@ export default function PublicInvoicePage() {
                   <p className="text-xs sm:text-sm text-gray-600">{businessInfo.address}</p>
                   <p className="text-xs sm:text-sm text-gray-600">{businessInfo.city}, {businessInfo.state} {businessInfo.zipCode}</p>
                   <p className="text-xs sm:text-sm text-gray-600">Phone: <a href={`tel:${businessInfo.phone}`} className="text-[#dc4310] hover:underline">{businessInfo.phone}</a></p>
-                  <p className="text-xs sm:text-sm text-gray-600">Website: <a href={`https://${businessInfo.website}`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline break-all">{businessInfo.website}</a></p>
+                  <p className="text-xs sm:text-sm text-gray-600">Website: <a href={`https://${businessInfo.website}`} target="_blank" rel="noopener noreferrer" className="text-[#dc4310] hover:underline break-all">{businessInfo.website}</a></p>
                 </div>
               </div>
 
@@ -381,7 +381,7 @@ export default function PublicInvoicePage() {
               <div className="mb-6 sm:mb-8">
                 <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-lg">
                   <table className="w-full min-w-[600px]">
-                    <thead className="bg-primary-600 text-white">
+                    <thead className="bg-[#ff5b1f] text-white">
                       <tr>
                         <th className="px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-xs sm:text-sm">Item Description</th>
                         <th className="px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold text-xs sm:text-sm w-16 sm:w-20">Qty</th>
@@ -412,7 +412,7 @@ export default function PublicInvoicePage() {
                   </div>
                   <div className="flex justify-between items-center py-2 sm:py-3 border-t-2 border-gray-300">
                     <span className="text-lg sm:text-xl font-bold text-gray-900">Total:</span>
-                    <span className="text-xl sm:text-2xl font-bold text-primary-600">₹{formatCurrency(invoice.total)}</span>
+                    <span className="text-xl sm:text-2xl font-bold text-[#dc4310]">₹{formatCurrency(invoice.total)}</span>
                   </div>
                 </div>
               </div>
