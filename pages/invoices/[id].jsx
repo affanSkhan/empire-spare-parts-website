@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
 
 /**
@@ -147,7 +146,7 @@ export default function PublicInvoicePage() {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-6 sm:p-8 relative">
+          <div className="bg-[#10151c] text-white p-6 sm:p-8 relative">
             {/* Dispatched Stamp - Show if order is completed */}
             {invoice.order?.status === 'completed' && (
               <div className="absolute top-4 right-4 transform rotate-12 z-10">
@@ -163,19 +162,21 @@ export default function PublicInvoicePage() {
             )}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
               {/* Logo */}
-              <div className="relative w-20 h-20 bg-white rounded-lg p-2 flex-shrink-0">
-                <Image
-                  src="/Empire Car Ac  Logo Design.jpg"
-                  alt="Empire Car A/C"
-                  fill
-                  className="object-contain"
-                />
+              <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center">
+                <div className="h-16 w-16 overflow-hidden rounded-2xl">
+                  <svg viewBox="0 0 64 64" className="h-full w-full" aria-label="Empire Car A/C">
+                    <rect width="64" height="64" rx="16" fill="#10151c"/>
+                    <circle cx="32" cy="32" r="16" fill="none" stroke="#ff5b22" strokeWidth="3.5"/>
+                    <path d="M32 13v38M13 32h38M18.6 18.6l26.8 26.8M45.4 18.6L18.6 45.4" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"/>
+                    <circle cx="32" cy="32" r="5.5" fill="#ff5b22" stroke="#fff" strokeWidth="2"/>
+                  </svg>
+                </div>
               </div>
               
               {/* Business Info */}
               <div className="flex-1 text-center sm:text-left">
                 <h1 className="text-2xl sm:text-3xl font-bold mb-2">{businessInfo.name}</h1>
-                <p className="text-blue-100 text-sm">{businessInfo.address}</p>
+                <p className="text-slate-400 text-sm">{businessInfo.address}</p>
                 <p className="text-blue-100 text-sm">{businessInfo.city}, {businessInfo.state} {businessInfo.zipCode}</p>
                 <p className="text-blue-100 text-sm mt-2">
                   📞 {businessInfo.phone} | 🌐 {businessInfo.website}
