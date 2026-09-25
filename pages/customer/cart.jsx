@@ -222,7 +222,7 @@ export default function CartPage() {
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff5b1f] mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading cart...</p>
           </div>
         ) : cartItems.length === 0 ? (
@@ -310,14 +310,14 @@ export default function CartPage() {
             </div>
 
             {/* Cart Summary */}
-            <div className="card bg-gradient-to-br from-blue-50 to-slate-50 border-2 border-blue-200">
+            <div className="card bg-white border border-black/10">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Order Summary</h3>
                 <span className="text-gray-600">{cartItems.length} item(s)</span>
               </div>
 
-              <div className="bg-blue-100 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-blue-800">
+              <div className="bg-[#fff4ee] border border-[#ffc8ae] rounded-lg p-4 mb-4">
+                <p className="text-sm text-[#8d3417]">
                   <strong>Note:</strong> Prices will be provided by our team after reviewing your order.
                   You'll receive a detailed quote before any charges apply.
                 </p>
