@@ -14,6 +14,7 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [totalProducts, setTotalProducts] = useState(0)
 
@@ -21,7 +22,9 @@ export default function ProductsPage() {
     if (!router.isReady) return
     const { category, search } = router.query
     setSelectedCategory(category || 'all')
-    setSearchTerm(search || '')
+    const nextSearch = search || ''
+    setSearchTerm(nextSearch)
+    setSearchInput(nextSearch)
   }, [router.isReady, router.query.category, router.query.search])
 
   useEffect(() => {
@@ -100,6 +103,7 @@ export default function ProductsPage() {
   function clearSearch() {
     setSelectedCategory('all')
     setSearchTerm('')
+    setSearchInput('')
     router.push('/products', undefined, { shallow: true })
   }
 
@@ -151,8 +155,8 @@ export default function ProductsPage() {
                     <input
                       id="search"
                       type="search"
-                      value={searchTerm}
-                      onChange={(event) => setSearchTerm(event.target.value)}
+                      value={searchInput}
+                      onChange={(event) => setSearchInput(event.target.value)}
                       placeholder="e.g. Swift condenser"
                       className="input-field min-w-0 flex-1 border-0 !shadow-none !ring-0"
                       aria-label="Search parts"
