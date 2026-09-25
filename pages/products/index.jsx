@@ -8,12 +8,6 @@ import ProductCard from '@/components/ProductCard'
 import CategoryFilter from '@/components/CategoryFilter'
 import { supabase } from '@/lib/supabaseClient'
 
-/**
- * Products Catalogue Page
- * Public page displaying all active products with filtering
- * Phase 2: Enhanced with live data fetching, responsive grid, and SEO
- * Filters persist in URL query parameters for better UX
- */
 export default function ProductsPage() {
   const router = useRouter()
   const [products, setProducts] = useState([])
@@ -23,25 +17,19 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [totalProducts, setTotalProducts] = useState(0)
 
-  // Initialize filters from URL on mount
   useEffect(() => {
-    if (router.isReady) {
-      const { category, search } = router.query
-      if (category) setSelectedCategory(category)
-      if (search) setSearchTerm(search)
-    }
-  }, [router.isReady])
+    if (!router.isReady) return
+    const { category, search } = router.query
+    setSelectedCategory(category || 'all')
+    setSearchTerm(search || '')
+  }, [router.isReady, router.query.category, router.query.search])
 
-  // Fetch categories on mount
   useEffect(() => {
     fetchCategories()
   }, [])
 
-  // Fetch products when filters change
   useEffect(() => {
-    if (router.isReady) {
-      fetchProducts()
-    }
+    if (router.isReady) fetchProducts()
   }, [selectedCategory, searchTerm, router.isReady])
 
   async function fetchCategories() {
@@ -50,34 +38,35 @@ export default function ProductsPage() {
       .select('*')
       .order('name')
 
-    if (!error && data) {
-      setCategories(data)
-    }
+    if (!error && data) setCategories(data)
   }
 
   async function fetchProducts() {
     setLoading(true)
-    
+
     let query = supabase
       .from('products')
-      .select(`
-        *,
-        category:categories(id, name, slug),
-        images:product_images(image_url, is_primary)
-      `, { count: 'exact' })
+      .select(
+        `
+          *,
+          category:categories(id, name, slug),
+          images:product_images(image_url, is_primary)
+        `,
+        { count: 'exact' }
+      )
       .eq('is_active', true)
 
-    // Filter by category
     if (selectedCategory !== 'all') {
       query = query.eq('category_id', selectedCategory)
     }
 
-    // Search filter (name, brand, or car_model)
-    if (searchTerm) {
-      query = query.or(`name.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%,car_model.ilike.%${searchTerm}%`)
+    if (searchTerm.trim()) {
+      const safeSearch = searchTerm.trim().replace(/[,%]/g, ' ')
+      query = query.or(
+        `name.ilike.%${safeSearch}%,brand.ilike.%${safeSearch}%,car_model.ilike.%${safeSearch}%`
+      )
     }
 
-    // Sort by most recent first
     query = query.order('created_at', { ascending: false })
 
     const { data, error, count } = await query
@@ -85,196 +74,254 @@ export default function ProductsPage() {
     if (!error && data) {
       setProducts(data)
       setTotalProducts(count || 0)
+    } else {
+      setProducts([])
+      setTotalProducts(0)
     }
+
     setLoading(false)
   }
 
-  // Update URL when filters change
-  function updateFilters(category, search) {
+  function applyFilters(category = selectedCategory, search = searchTerm) {
     const query = {}
-    if (category && category !== 'all') query.category = category
-    if (search) query.search = search
+    const cleanSearch = search.trim()
 
-    router.push(
-      {
-        pathname: '/products',
-        query,
-      },
-      undefined,
-      { shallow: true }
-    )
+    if (category && category !== 'all') query.category = category
+    if (cleanSearch) query.search = cleanSearch
+
+    router.push({ pathname: '/products', query }, undefined, { shallow: true })
   }
 
-  // Handle category change
   function handleCategoryChange(category) {
     setSelectedCategory(category)
-    updateFilters(category, searchTerm)
+    applyFilters(category, searchTerm)
   }
 
-  // Handle search change
-  function handleSearchChange(search) {
-    setSearchTerm(search)
-    updateFilters(selectedCategory, search)
-  }
-
-  // Clear search
   function clearSearch() {
-    setSearchTerm('')
     setSelectedCategory('all')
+    setSearchTerm('')
     router.push('/products', undefined, { shallow: true })
   }
 
   return (
     <>
       <Head>
-        <title>Car A/C Parts Catalogue - Empire Car A/C | Amravati</title>
-        <meta name="description" content="Browse our extensive catalogue of car air conditioning spare parts and accessories. Find A/C compressors, condensers, and more. Contact us for pricing and availability." />
-        <meta name="keywords" content="car ac parts, ac compressor, ac condenser, car air conditioning, ac spare parts, amravati" />
-        
-        {/* Open Graph / Facebook */}
+        <title>Car A/C Parts Catalogue | Empire Car A/C — Amravati</title>
+        <meta
+          name="description"
+          content="Browse Empire Car A/C's active catalogue of car air-conditioning spare parts and automotive components in Amravati. Search by part, brand or vehicle."
+        />
+        <meta
+          name="keywords"
+          content="car AC parts Amravati, AC spare parts, AC compressor, AC condenser, blower resistor, automotive parts"
+        />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Car A/C Parts Catalogue - Empire Car A/C" />
-        <meta property="og:description" content="Browse our extensive catalogue of car A/C spare parts and accessories" />
-        <meta property="og:url" content="https://yoursite.com/products" />
-        
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Car A/C Parts Catalogue - Empire Car A/C" />
-        <meta name="twitter:description" content="Browse car A/C spare parts and accessories in Amravati" />
-        
-        <link rel="canonical" href="https://yoursite.com/products" />
+        <meta property="og:title" content="Car A/C Parts Catalogue | Empire Car A/C" />
+        <meta property="og:description" content="Search car A/C parts by part name, brand or vehicle." />
+        <meta property="og:url" content="https://www.empirecarac.in/products" />
+        <link rel="canonical" href="https://www.empirecarac.in/products" />
       </Head>
 
       <Navbar />
 
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 py-6 sm:py-8 lg:py-12">
-        <div className="container mx-auto px-4">
-          {/* Page Header */}
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
-              Product Catalogue
-            </h1>
-            <p className="text-base sm:text-lg text-gray-700">
-              Browse our selection of {totalProducts} quality spare parts
-            </p>
-          </div>
-
-          {/* Filters Section */}
-          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border-t-4 border-blue-500">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Search */}
+      <main className="min-h-screen bg-white">
+        {/* Catalogue header */}
+        <section className="bg-[#10151c] text-white">
+          <div className="site-shell py-12 sm:py-16 lg:py-20">
+            <div className="grid gap-8 lg:grid-cols-[1fr_430px] lg:items-end">
               <div>
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Products
-                </label>
-                <div className="relative">
-                  <input
-                    id="search"
-                    type="text"
-                    placeholder="Search by name, brand, or car model..."
-                    className="input-field pr-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                <span className="eyebrow !text-[#ff8e68]">Parts catalogue</span>
+                <h1 className="mt-4 max-w-3xl text-balance text-4xl font-black tracking-[-0.05em] sm:text-5xl lg:text-6xl">
+                  Find the component you need.
+                </h1>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                  Search across the active Empire Car A/C catalogue using a part name, brand or vehicle model. Open a part to review its details and ask about current availability.
+                </p>
+              </div>
+
+              <div className="rounded-[26px] border border-white/10 bg-white/[0.06] p-4 backdrop-blur">
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    applyFilters(selectedCategory, searchTerm)
+                  }}
+                  className="rounded-[20px] bg-white p-3"
+                >
+                  <div className="flex gap-2">
+                    <input
+                      id="search"
+                      type="search"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      placeholder="e.g. Swift condenser"
+                      className="input-field min-w-0 flex-1 border-0 !shadow-none !ring-0"
+                      aria-label="Search parts"
+                    />
+                    <button type="submit" className="btn-primary shrink-0 px-4">
+                      Search
+                    </button>
+                  </div>
+                </form>
+
+                <div className="mt-4 flex items-center justify-between gap-4 text-xs text-slate-400">
+                  <span>Search by part / brand / vehicle</span>
                   {searchTerm && (
                     <button
-                      onClick={() => handleSearchChange('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      aria-label="Clear search"
+                      type="button"
+                      onClick={clearSearch}
+                      className="font-bold text-white hover:text-orange-200"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      Clear
                     </button>
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
 
-              {/* Category Filter */}
-              <CategoryFilter
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onCategoryChange={handleCategoryChange}
-              />
+        {/* Controls */}
+        <section className="border-b border-slate-200 bg-[#f7f8fa]">
+          <div className="site-shell py-5">
+            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Browse</span>
+                  <Link
+                    href="/products"
+                    className={`rounded-full px-3.5 py-2 text-xs font-bold transition-colors ${
+                      selectedCategory === 'all'
+                        ? 'bg-slate-950 text-white'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    All parts
+                  </Link>
+                  {categories.slice(0, 6).map((category) => (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => handleCategoryChange(category.id)}
+                      className={`rounded-full px-3.5 py-2 text-xs font-bold transition-colors ${
+                        selectedCategory === category.id
+                          ? 'bg-[#ff5b22] text-white'
+                          : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+
+                {categories.length > 6 && (
+                  <div className="mt-4 max-w-xs">
+                    <CategoryFilter
+                      categories={categories}
+                      selectedCategory={selectedCategory}
+                      onCategoryChange={handleCategoryChange}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="text-sm text-slate-500 lg:text-right">
+                <span className="font-black text-slate-950">{totalProducts}</span> active part{totalProducts === 1 ? '' : 's'} found
+              </div>
             </div>
 
-            {/* Active Filters Display */}
             {(searchTerm || selectedCategory !== 'all') && (
-              <div className="mt-4 flex items-center flex-wrap gap-2">
-                <span className="text-sm text-gray-600">Active filters:</span>
+              <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-4">
+                <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Filters</span>
                 {searchTerm && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800">
-                    Search: "{searchTerm}"
-                    <button onClick={() => handleSearchChange('')} className="ml-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                    “{searchTerm}”
                   </span>
                 )}
                 {selectedCategory !== 'all' && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800">
-                    Category: {categories.find(c => c.id === selectedCategory)?.name}
-                    <button onClick={() => handleCategoryChange('all')} className="ml-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                    {categories.find((category) => category.id === selectedCategory)?.name || 'Category'}
                   </span>
                 )}
-                <button onClick={clearSearch} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                  Clear all
+                <button type="button" onClick={clearSearch} className="text-xs font-bold text-[#dc4310] hover:underline">
+                  Reset filters
                 </button>
               </div>
             )}
           </div>
+        </section>
 
-          {/* Products Grid */}
+        {/* Products */}
+        <section className="site-shell py-10 sm:py-12 lg:py-16">
           {loading ? (
-            <div className="text-center py-12 sm:py-20">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-              <p className="mt-4 text-gray-600">Loading products...</p>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                  <div className="aspect-[4/3] animate-pulse bg-slate-100" />
+                  <div className="space-y-3 p-5">
+                    <div className="h-5 w-4/5 animate-pulse rounded bg-slate-100" />
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100" />
+                    <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
+                    <div className="h-11 w-full animate-pulse rounded-xl bg-slate-100" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-12 sm:py-20 bg-white rounded-lg shadow-md">
-              <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No products found</h3>
-              <p className="text-gray-600 mb-4">Try adjusting your filters or search terms</p>
-              <button onClick={clearSearch} className="btn-primary">
-                Clear Filters
-              </button>
+            <div className="rounded-[28px] border border-slate-200 bg-[#f7f8fa] px-6 py-16 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-xl text-white">⌕</div>
+              <h2 className="mt-6 text-2xl font-black tracking-[-0.03em] text-slate-950">No matching parts</h2>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                Try a broader part name or vehicle model. You can also contact Empire directly for help identifying a component.
+              </p>
+              <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                <button type="button" onClick={clearSearch} className="btn-primary">
+                  Reset search
+                </button>
+                <a href="tel:+917741077666" className="btn-secondary">
+                  Call +91 77410 77666
+                </a>
+              </div>
             </div>
           ) : (
-            <>
-              {/* Results Count */}
-              <div className="mb-4 text-sm text-gray-600">
-                Showing {products.length} product{products.length !== 1 ? 's' : ''}
-              </div>
-
-              {/* Responsive Product Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Contact CTA */}
-          {!loading && products.length > 0 && (
-            <div className="mt-12 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg p-6 sm:p-8 text-center">
-              <h2 className="text-2xl font-bold mb-2">Need A/C Installation or Repair Service?</h2>
-              <p className="text-gray-700 mb-4">
-                Visit our Amravati shop for professional car A/C services or contact us for parts availability
-              </p>
-              <Link href="/contact" className="btn-primary">
-                Contact Us
-              </Link>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
           )}
-        </div>
+        </section>
+
+        {/* Enquiry strip */}
+        {!loading && (
+          <section className="border-t border-slate-200 bg-white py-12 sm:py-16">
+            <div className="site-shell">
+              <div className="grid overflow-hidden rounded-[28px] bg-[#f7f8fa] lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="p-7 sm:p-9">
+                  <span className="eyebrow">Can’t find it?</span>
+                  <h2 className="mt-4 text-2xl font-black tracking-[-0.035em] text-slate-950 sm:text-3xl">
+                    Tell us the car and part.
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                    A vehicle model, old part name/number or a clear photo can make an enquiry much easier.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 p-7 sm:flex-row sm:p-9 lg:flex-col">
+                  <a href="tel:+917741077666" className="btn-primary whitespace-nowrap">
+                    Call +91 77410 77666
+                  </a>
+                  <a
+                    href="https://wa.me/917741077666"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary whitespace-nowrap"
+                  >
+                    WhatsApp enquiry
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />
