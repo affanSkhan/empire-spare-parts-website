@@ -1,99 +1,128 @@
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-
-const products = [
-  {
-    id: 1,
-    title: 'Wiring Sockets',
-    description: 'Reliable automotive electrical connectors for clean, secure connections.',
-    imageUrl: '/showcase/wiring-socket.jpg',
-    tag: 'Electrical'
-  },
-  {
-    id: 2,
-    title: 'Blower Resistors',
-    description: 'Airflow control components for dependable cabin comfort.',
-    imageUrl: '/showcase/blower-resistance.jpg',
-    tag: 'Cabin A/C'
-  },
-  {
-    id: 3,
-    title: 'Radiator Fan Resistors',
-    description: 'Cooling-system components built for consistent thermal performance.',
-    imageUrl: '/showcase/radiator-fan.jpg',
-    tag: 'Cooling'
-  },
-  {
-    id: 4,
-    title: 'Mirror Motor Gears',
-    description: 'Precision drive components for powered folding mirror systems.',
-    imageUrl: '/showcase/motor-gear.jpg',
-    tag: 'Body Electronics'
-  }
-]
+import { supabase } from '@/lib/supabaseClient'
 
 export default function ProductShowcase() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadProducts() {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, slug, brand, car_model, description, category:categories(id, name, slug), images:product_images(image_url, is_primary)')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(4)
+
+      setProducts(data || [])
+      setLoading(false)
+    }
+
+    loadProducts()
+  }, [])
+
+  const getImage = (product) => {
+    if (!product.images?.length) return null
+    const primary = product.images.find((image) => image.is_primary)
+    return primary?.image_url || product.images[0]?.image_url || null
+  }
+
   return (
     <section className="bg-[#f7f8fa] py-16 sm:py-20 lg:py-24">
       <div className="site-shell">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
-            <span className="eyebrow">Parts spotlight</span>
+            <span className="eyebrow">Latest parts</span>
             <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] text-slate-950 sm:text-4xl lg:text-5xl">
-              Built for the parts people actually ask for.
+              A live look at the catalogue.
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-              Explore a sample of our automotive electrical and A/C-related range. Availability changes, so contact us for the latest stock and fitment.
+              These cards are pulled from the active catalogue so the homepage stays connected to current product data.
             </p>
           </div>
           <Link href="/products" className="btn-secondary w-fit">
-            View full catalogue
+            View all parts
             <span aria-hidden="true">↗</span>
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-12 lg:grid-rows-2">
-          {products.map((product, index) => (
-            <Link
-              key={product.id}
-              href="/products"
-              className={`group relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_12px_38px_rgba(16,21,28,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_52px_rgba(16,21,28,0.11)] focus:outline-none focus:ring-4 focus:ring-blue-100 ${
-                index === 0 ? 'lg:col-span-7 lg:row-span-2' : 'lg:col-span-5'
-              }`}
-            >
-              <div className={`relative overflow-hidden ${index === 0 ? 'h-full min-h-[430px]' : 'h-56'}`}>
-                <img
-                  src={product.imageUrl}
-                  alt={product.title}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-contain bg-slate-50 p-8 transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/5 to-transparent" />
-                <span className="absolute left-5 top-5 rounded-full border border-white/20 bg-slate-950/70 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur">
-                  {product.tag}
-                </span>
-
-                <div className="absolute inset-x-5 bottom-5">
-                  <div className="max-w-xl">
-                    <h3 className={`font-black tracking-[-0.03em] text-white ${index === 0 ? 'text-3xl sm:text-4xl' : 'text-2xl'}`}>
-                      {product.title}
-                    </h3>
-                    <p className="mt-2 max-w-xl text-sm leading-6 text-white/80">
-                      {product.description}
-                    </p>
-                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white">
-                      Ask about availability
-                      <span className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true">→</span>
-                    </span>
-                  </div>
+        {loading ? (
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <div className="aspect-[4/3] animate-pulse bg-slate-100" />
+                <div className="space-y-3 p-5">
+                  <div className="h-5 w-4/5 animate-pulse rounded bg-slate-100" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100" />
+                  <div className="h-11 w-full animate-pulse rounded-xl bg-slate-100" />
                 </div>
               </div>
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : products.length > 0 ? (
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {products.map((product) => {
+              const image = getImage(product)
+              return (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.slug}`}
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(16,21,28,0.045)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(16,21,28,0.10)]"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                    {image ? (
+                      <Image
+                        src={image}
+                        alt={product.name}
+                        fill
+                        className="object-contain p-7 transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-950 text-2xl text-white">⌁</div>
+                      </div>
+                    )}
+                    {product.category && (
+                      <span className="absolute left-3 top-3 rounded-full border border-white/40 bg-slate-950/75 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-white backdrop-blur">
+                        {product.category.name}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-5">
+                    <h3 className="line-clamp-2 text-lg font-black leading-tight tracking-[-0.025em] text-slate-950 transition-colors group-hover:text-[#dc4310]">
+                      {product.name}
+                    </h3>
+
+                    {product.brand && (
+                      <p className="mt-2 text-sm text-slate-500">
+                        <span className="font-semibold text-slate-900">{product.brand}</span>
+                        {product.car_model ? ` · ${product.car_model}` : ''}
+                      </p>
+                    )}
+
+                    <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+                      <span className="text-sm font-bold text-slate-500">View details</span>
+                      <span className="text-lg font-bold text-[#dc4310] transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="mt-10 rounded-[28px] border border-slate-200 bg-white p-8 text-center">
+            <p className="text-sm text-slate-500">The catalogue is ready for your next product additions.</p>
+            <Link href="/products" className="mt-4 inline-flex text-sm font-bold text-[#dc4310] hover:underline">Browse the catalogue →</Link>
+          </div>
+        )}
 
         <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-          <span className="font-semibold text-slate-700">Need a different part?</span>
-          <span>Share your car model or old part photo and we can help identify the right category.</span>
+          <span className="font-semibold text-slate-700">Need a specific part?</span>
+          <span>Share your vehicle model, part number or a clear photo when you contact us.</span>
         </div>
       </div>
     </section>
