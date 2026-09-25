@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Logo from './Logo'
 import { supabase } from '@/lib/supabaseClient'
@@ -9,6 +9,10 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [cartCount, setCartCount] = useState(0)
+  const [scrolled, setScrolled] = useState(false)
+
+  const isHome = router.pathname === '/'
+  const lightHero = isHome && !scrolled
 
   const fetchCartCount = async () => {
     if (typeof window === 'undefined') return
@@ -17,17 +21,12 @@ export default function Navbar() {
       setCartCount(0)
       return
     }
+    const response = await supabase
+      .from('cart_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('customer_id', customerId)
 
-    try {
-      const { count, error } = await supabase
-        .from('cart_items')
-        .select('*', { count: 'exact', head: true })
-        .eq('customer_id', customerId)
-
-      if (!error) setCartCount(count || 0)
-    } catch (error) {
-      console.error('Error fetching cart count:', error)
-    }
+    if (!response.error) setCartCount(response.count || 0)
   }
 
   useEffect(() => {
@@ -38,197 +37,176 @@ export default function Navbar() {
       else setCartCount(0)
     }
 
+    const onScroll = () => setScrolled(window.scrollY > 48)
+
     checkAuth()
+    onScroll()
+
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('storage', checkAuth)
-    router.events?.on('routeChangeComplete', checkAuth)
+    router.events.on('routeChangeComplete', checkAuth)
+    window.addEventListener('cart-updated', fetchCartCount)
 
     return () => {
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('storage', checkAuth)
-      router.events?.off('routeChangeComplete', checkAuth)
+      router.events.off('routeChangeComplete', checkAuth)
+      window.removeEventListener('cart-updated', fetchCartCount)
     }
-  }, [router])
+  }, [router.events])
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [router.asPath])
 
   useEffect(() => {
     if (!isLoggedIn) return
-
     const customerId = localStorage.getItem('customer_id')
     if (!customerId) return
 
-    fetchCartCount()
-
     const channel = supabase
-      .channel(`cart-changes-${customerId}`)
+      .channel('cart-nav-' + customerId)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'cart_items',
-          filter: `customer_id=eq.${customerId}`
+          filter: 'customer_id=eq.' + customerId
         },
-        () => fetchCartCount()
+        fetchCartCount
       )
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => supabase.removeChannel(channel)
   }, [isLoggedIn])
-
-  useEffect(() => {
-    const handleCartUpdate = () => fetchCartCount()
-    window.addEventListener('cart-updated', handleCartUpdate)
-    return () => window.removeEventListener('cart-updated', handleCartUpdate)
-  }, [])
-
-  useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [router.asPath])
-
-  const showPublicContactDock = !router.pathname.startsWith('/admin') && !router.pathname.startsWith('/customer')
 
   const navLink = (href, label) => (
     <Link
       href={href}
-      className={`relative py-2 text-sm font-semibold transition-colors group ${
-        router.pathname === href ? 'text-slate-950' : 'text-slate-600 hover:text-slate-950'
-      }`}
+      className={
+        'group relative py-2 text-[13px] font-black tracking-[-0.01em] transition-colors duration-300 ' +
+        (lightHero ? 'text-white/72 hover:text-white' : 'text-[#596472] hover:text-[#0b0f13]')
+      }
     >
       {label}
       <span
-        className={`absolute left-0 right-0 -bottom-0.5 h-0.5 origin-left rounded-full bg-[#ff5b22] transition-transform ${
-          router.pathname === href ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-        }`}
+        className={
+          'absolute -bottom-1 left-0 h-px w-full origin-left bg-[#ff5b1f] transition-transform duration-500 ' +
+          (router.pathname === href ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100')
+        }
       />
     </Link>
   )
 
   return (
     <>
-      <div className="bg-[#10151c] text-white">
-        <div className="site-shell flex min-h-9 items-center justify-between gap-4 text-[11px] sm:text-xs">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#ff5b22]" />
-            <span className="truncate font-medium tracking-wide">Car A/C parts • Amravati</span>
-          </div>
-          <a
-            href="tel:+917741077666"
-            className="shrink-0 font-bold text-white hover:text-orange-300 transition-colors"
-          >
-            +91 77410 77666
-          </a>
-        </div>
-      </div>
-
-      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+      <header
+        className={
+          'fixed inset-x-0 top-0 z-50 transition-all duration-700 ' +
+          (lightHero
+            ? 'bg-transparent'
+            : 'border-b border-black/[.06] bg-[#f4f2ee]/90 shadow-[0_12px_40px_rgba(11,15,19,.05)] backdrop-blur-2xl')
+        }
+      >
         <div className="site-shell">
-          <div className="flex h-[72px] items-center justify-between gap-6">
-            <Link href="/" className="shrink-0 rounded-xl focus-ring" aria-label="Empire Car A/C home">
-              <Logo size="small" />
+          <div className="flex h-[82px] items-center justify-between gap-6">
+            <Link href="/" aria-label="Empire Car A/C home" className="shrink-0">
+              <Logo size="small" light={lightHero} />
             </Link>
 
-            <div className="hidden lg:flex items-center gap-8">
+            <nav className="hidden items-center gap-9 lg:flex">
               {navLink('/', 'Home')}
-              {navLink('/products', 'Parts Catalogue')}
+              {navLink('/products', 'Parts')}
               {navLink('/contact', 'Visit & Contact')}
-            </div>
+            </nav>
 
-            <div className="hidden sm:flex items-center gap-2">
-              {isLoggedIn ? (
-                <>
-                  <Link
-                    href="/customer/dashboard"
-                    className="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950 transition-colors"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/customer/cart"
-                    className="relative inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 transition-colors"
-                  >
-                    Cart
-                    {cartCount > 0 && (
-                      <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-[#ff5b22] px-1.5 text-[10px] font-black">
-                        {cartCount > 9 ? '9+' : cartCount}
-                      </span>
-                    )}
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/auth/login"
-                    className="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950 transition-colors"
-                  >
-                    Customer Login
-                  </Link>
-                  <Link href="/products" className="btn-primary py-2.5 px-4 text-sm">
-                    Find a Part
-                  </Link>
-                </>
+            <div className="hidden items-center gap-2 sm:flex">
+              {isLoggedIn && (
+                <Link
+                  href="/customer/cart"
+                  className={
+                    'rounded-full px-4 py-2.5 text-[13px] font-black transition-colors ' +
+                    (lightHero ? 'text-white/75 hover:bg-white/10 hover:text-white' : 'text-[#596472] hover:bg-black/[.04] hover:text-[#0b0f13]')
+                  }
+                >
+                  Cart {cartCount > 0 ? '(' + cartCount + ')' : ''}
+                </Link>
               )}
+
+              <Link
+                href={isLoggedIn ? '/customer/dashboard' : '/auth/login'}
+                className={
+                  'rounded-full px-5 py-3 text-[13px] font-black transition-all duration-500 ' +
+                  (lightHero
+                    ? 'border border-white/18 bg-white/[.06] text-white hover:-translate-y-0.5 hover:bg-white/[.10]'
+                    : 'border border-black/10 bg-white text-[#0b0f13] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(11,15,19,.07)]')
+                }
+              >
+                {isLoggedIn ? 'Account' : 'Customer Login'}
+              </Link>
+
+              <Link
+                href="/products"
+                className="magnetic rounded-full bg-[#ff5b1f] px-5 py-3 text-[13px] font-black text-white shadow-[0_12px_32px_rgba(255,91,31,.18)] transition-all duration-500 hover:bg-[#dc4310]"
+              >
+                Find a Part <span aria-hidden="true">↗</span>
+              </Link>
             </div>
 
             <button
               type="button"
-              className="lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-900 shadow-sm focus-ring"
-              onClick={() => setMobileMenuOpen((open) => !open)}
+              onClick={() => setMobileMenuOpen((value) => !value)}
+              className={
+                'inline-flex h-11 w-11 items-center justify-center rounded-full border lg:hidden transition-colors ' +
+                (lightHero ? 'border-white/18 bg-white/[.06] text-white' : 'border-black/10 bg-white text-[#0b0f13]')
+              }
               aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6l12 12M18 6L6 18" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16M4 12h16M4 17h16" />
-                )}
-              </svg>
+              <span className="text-lg leading-none">{mobileMenuOpen ? '×' : '☰'}</span>
             </button>
           </div>
 
           {mobileMenuOpen && (
-            <div className="lg:hidden border-t border-slate-200 py-4">
-              <div className="grid gap-1">
-                <Link href="/" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Home</Link>
-                <Link href="/products" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Parts Catalogue</Link>
-                <Link href="/contact" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Visit & Contact</Link>
-                {isLoggedIn ? (
-                  <>
-                    <Link href="/customer/dashboard" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Dashboard</Link>
-                    <Link href="/customer/cart" className="rounded-xl px-4 py-3 text-sm font-bold text-slate-950 hover:bg-slate-50">
-                      Cart {cartCount > 0 ? `(${cartCount})` : ''}
-                    </Link>
-                  </>
-                ) : (
-                  <Link href="/auth/login" className="mt-2 rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-bold text-white">
-                    Customer Login
-                  </Link>
-                )}
-                <a href="tel:+917741077666" className="mt-2 rounded-xl border border-[#ffd6c7] bg-[#fff5f1] px-4 py-3 text-center text-sm font-bold text-[#dc4310]">
-                  Call +91 77410 77666
-                </a>
+            <div className="pb-5 lg:hidden">
+              <div className={
+                'rounded-[28px] border p-3 shadow-2xl backdrop-blur-xl ' +
+                (lightHero ? 'border-white/10 bg-[#0b0f13]/85' : 'border-black/10 bg-white')
+              }>
+                <div className="grid gap-1">
+                  <Link href="/" className={'rounded-2xl px-4 py-3 text-sm font-black ' + (lightHero ? 'text-white hover:bg-white/10' : 'text-[#0b0f13] hover:bg-black/[.04]')}>Home</Link>
+                  <Link href="/products" className={'rounded-2xl px-4 py-3 text-sm font-black ' + (lightHero ? 'text-white hover:bg-white/10' : 'text-[#0b0f13] hover:bg-black/[.04]')}>Parts Catalogue</Link>
+                  <Link href="/contact" className={'rounded-2xl px-4 py-3 text-sm font-black ' + (lightHero ? 'text-white hover:bg-white/10' : 'text-[#0b0f13] hover:bg-black/[.04]')}>Visit & Contact</Link>
+                  {isLoggedIn && <Link href="/customer/dashboard" className={'rounded-2xl px-4 py-3 text-sm font-black ' + (lightHero ? 'text-white hover:bg-white/10' : 'text-[#0b0f13] hover:bg-black/[.04]')}>Account</Link>}
+                  <a href="tel:+917741077666" className="mt-2 rounded-2xl bg-[#ff5b1f] px-4 py-3 text-center text-sm font-black text-white">
+                    Call +91 77410 77666
+                  </a>
+                </div>
               </div>
             </div>
           )}
         </div>
-      </nav>
-      {showPublicContactDock && (
-        <div className="fixed inset-x-3 bottom-3 z-[60] grid grid-cols-2 gap-2 sm:hidden">
-          <a
-            href="tel:+917741077666"
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3.5 text-sm font-black text-white shadow-2xl ring-1 ring-white/10 backdrop-blur"
-          >
-            <span className="h-2 w-2 rounded-full bg-[#ff5b22]" />
-            Call +91 77410 77666
-          </a>
-          <a
-            href="https://wa.me/917741077666"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3.5 text-sm font-black text-slate-950 shadow-2xl ring-1 ring-slate-200"
-          >
-            WhatsApp
-            <span aria-hidden="true">↗</span>
+      </header>
+
+      {isHome && !scrolled && (
+        <div className="pointer-events-none fixed bottom-6 right-6 z-40 hidden lg:block">
+          <div className="flex items-center gap-3 rounded-full border border-white/14 bg-black/15 px-4 py-2.5 text-[9px] font-black uppercase tracking-[.18em] text-white/58 backdrop-blur-xl">
+            Scroll to explore
+            <span className="orbit-pulse h-2 w-2 rounded-full border border-[#ff8e68]" />
+          </div>
+        </div>
+      )}
+
+      {!isHome && (
+        <div className="h-[82px]" aria-hidden="true" />
+      )}
+
+      {!isHome && (
+        <div className="pointer-events-none fixed bottom-4 right-4 z-40 hidden lg:block">
+          <a href="tel:+917741077666" className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-3 text-xs font-black text-[#0b0f13] shadow-xl">
+            <span className="h-2 w-2 rounded-full bg-[#ff5b1f]" />
+            +91 77410 77666
           </a>
         </div>
       )}
