@@ -90,14 +90,14 @@ export default function CustomerDashboard() {
       </Head>
 
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-slate-950">
           Welcome, {customer?.name}!
         </h1>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <Link href="/customer/cart">
-            <div className="card bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-2xl transition-all transform hover:-translate-y-1 cursor-pointer">
+            <div className="card bg-slate-950 text-white hover:shadow-2xl transition-all transform hover:-translate-y-1 cursor-pointer">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm mb-1">Cart Items</p>
@@ -112,7 +112,7 @@ export default function CustomerDashboard() {
             </div>
           </Link>
 
-          <div className="card bg-gradient-to-br from-slate-500 to-gray-600 text-white">
+          <div className="card bg-slate-800 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-100 text-sm mb-1">Total Orders</p>
@@ -126,7 +126,7 @@ export default function CustomerDashboard() {
             </div>
           </div>
 
-          <div className="card bg-gradient-to-br from-cyan-500 to-blue-600 text-white">
+          <div className="card bg-[#ff5b22] text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm mb-1">Pending Orders</p>
@@ -144,7 +144,7 @@ export default function CustomerDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <Link href="/products">
-            <div className="card hover:shadow-2xl transition-all cursor-pointer border-t-4 border-blue-500">
+            <div className="card hover:shadow-2xl transition-all cursor-pointer border-t-4 border-[#ff5b22]">
               <div className="flex items-center">
                 <div className="bg-blue-100 p-3 rounded-lg mr-4">
                   <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +160,7 @@ export default function CustomerDashboard() {
           </Link>
 
           <Link href="/customer/orders">
-            <div className="card hover:shadow-2xl transition-all cursor-pointer border-t-4 border-slate-500">
+            <div className="card hover:shadow-2xl transition-all cursor-pointer border-t-4 border-slate-800">
               <div className="flex items-center">
                 <div className="bg-slate-100 p-3 rounded-lg mr-4">
                   <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,7 +212,7 @@ export default function CustomerDashboard() {
               ))}
 
               {stats.totalOrders > 3 && (
-                <Link href="/customer/orders" className="block text-center text-blue-600 hover:text-blue-700 font-semibold py-2">
+                <Link href="/customer/orders" className="block text-center text-[#dc4310] hover:text-[#b9380c] font-semibold py-2">
                   View All Orders →
                 </Link>
               )}
