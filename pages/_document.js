@@ -2,7 +2,7 @@ import { Html, Head, Main, NextScript } from 'next/document'
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html lang="en" dir="ltr">
       <Head>
         {/* Mobile Optimization */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
@@ -11,7 +11,7 @@ export default function Document() {
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         
         {/* Theme Color */}
-        <meta name="theme-color" content="#2563eb" />
+        <meta name="theme-color" content="#10151c" />
         
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
