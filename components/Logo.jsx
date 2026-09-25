@@ -1,26 +1,22 @@
 import Image from 'next/image'
 
-/**
- * Logo Component for Empire Car A/C
- * Displays the business logo with circular image and tagline
- */
 export default function Logo({ className = "", size = "normal", showText = true }) {
   const sizes = {
     small: {
-      text: "text-base sm:text-lg",
-      tagline: "text-[10px] sm:text-xs",
+      text: "text-base sm:text-[17px]",
+      tagline: "text-[9px] sm:text-[10px]",
       logo: 40,
       logoClass: "w-10 h-10"
     },
     normal: {
       text: "text-lg sm:text-xl",
-      tagline: "text-xs sm:text-sm",
+      tagline: "text-[10px] sm:text-xs",
       logo: 50,
-      logoClass: "w-12 h-12 sm:w-14 sm:h-14"
+      logoClass: "w-11 h-11 sm:w-12 sm:h-12"
     },
     large: {
       text: "text-2xl sm:text-3xl md:text-4xl",
-      tagline: "text-sm sm:text-base md:text-lg",
+      tagline: "text-xs sm:text-sm md:text-base",
       logo: 80,
       logoClass: "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24"
     }
@@ -29,12 +25,11 @@ export default function Logo({ className = "", size = "normal", showText = true 
   const currentSize = sizes[size] || sizes.normal
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      {/* Circular Logo Image */}
-      <div className={`${currentSize.logoClass} rounded-full overflow-hidden bg-gray-900 flex-shrink-0 shadow-lg ring-2 ring-blue-400 ring-offset-2`}>
+    <div className={`flex items-center gap-2.5 sm:gap-3 ${className}`}>
+      <div className={`${currentSize.logoClass} rounded-2xl overflow-hidden bg-slate-950 flex-shrink-0 shadow-[0_8px_20px_rgba(15,23,42,0.16)] ring-1 ring-slate-200`}>
         <Image
           src="/Empire Car Ac  Logo Design.jpg"
-          alt="Empire Car A/C Logo"
+          alt="Empire Car A/C logo"
           width={currentSize.logo}
           height={currentSize.logo}
           className="w-full h-full object-cover"
@@ -42,15 +37,13 @@ export default function Logo({ className = "", size = "normal", showText = true 
         />
       </div>
 
-      {/* Text Content */}
       {showText && (
-        <div className="flex flex-col">
-          <div className={`${currentSize.text} font-bold leading-tight`}>
-            <span className="text-gray-900">EMPIRE CAR </span>
-            <span className="bg-gradient-to-r from-blue-500 to-slate-500 bg-clip-text text-transparent">A/C</span>
+        <div className="min-w-0 flex flex-col">
+          <div className={`${currentSize.text} font-black tracking-[-0.03em] leading-none text-slate-950 whitespace-nowrap`}>
+            EMPIRE CAR <span className="text-[#ff5b22]">A/C</span>
           </div>
-          <div className={`${currentSize.tagline} bg-gradient-to-r from-blue-500 to-slate-500 bg-clip-text text-transparent font-medium italic leading-tight mt-0.5`}>
-            Our Perfection Your Satisfaction
+          <div className={`${currentSize.tagline} text-slate-500 font-semibold tracking-wide leading-tight mt-1 whitespace-nowrap`}>
+            Our Perfection. Your Satisfaction.
           </div>
         </div>
       )}
