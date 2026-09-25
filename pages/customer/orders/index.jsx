@@ -81,7 +81,7 @@ export default function CustomerOrders() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold text-slate-950 mb-2">
               My Orders
             </h1>
             <p className="text-gray-600">Track and manage your orders</p>
@@ -105,7 +105,7 @@ export default function CustomerOrders() {
                 onClick={() => setFilter(value)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   filter === value
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md'
+                    ? 'bg-[#ff5b22] text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -169,7 +169,7 @@ export default function CustomerOrders() {
                     </div>
 
                     {/* View Details Button */}
-                    <div className="flex items-center text-blue-600 font-medium">
+                    <div className="flex items-center text-[#dc4310] font-bold">
                       View Details
                       <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
