@@ -135,7 +135,7 @@ export default function AdminOrders() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#0b0f13] mb-2">
             Orders Management
           </h1>
           <p className="text-sm sm:text-base text-gray-600">Review and manage customer orders</p>
@@ -198,7 +198,7 @@ export default function AdminOrders() {
                   onClick={() => setFilter(value)}
                   className={`px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-lg font-medium transition-colors ${
                     filter === value
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md'
+                      ? 'bg-[#ff5b1f] text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -264,7 +264,7 @@ export default function AdminOrders() {
                     
                     <Link
                       href={`/admin/orders/${order.id}`}
-                      className="w-full flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all font-medium shadow-md text-sm"
+                      className="w-full flex items-center justify-center px-4 py-2.5 bg-[#ff5b1f] text-white rounded-lg hover:bg-[#dc4310] transition-all font-medium shadow-md text-sm"
                     >
                       View Details
                       <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,7 +326,7 @@ export default function AdminOrders() {
                           <td className="px-6 py-4 whitespace-nowrap text-right">
                             <Link
                               href={`/admin/orders/${order.id}`}
-                              className="inline-flex items-center px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all font-medium shadow-md"
+                              className="inline-flex items-center px-4 py-2 text-sm bg-[#ff5b1f] text-white rounded-lg hover:bg-[#dc4310] transition-all font-medium shadow-md"
                             >
                               View Details
                               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
