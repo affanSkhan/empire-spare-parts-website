@@ -137,7 +137,7 @@ export default function CustomerNotificationsPage() {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-6">
+          <div className="bg-[#0b0f13] text-white p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold">Notifications</h1>
