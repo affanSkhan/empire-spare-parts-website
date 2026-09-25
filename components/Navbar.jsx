@@ -4,18 +4,14 @@ import { useRouter } from 'next/router'
 import Logo from './Logo'
 import { supabase } from '@/lib/supabaseClient'
 
-/**
- * Public Site Navigation Component
- * Displays navigation menu for public pages
- */
 export default function Navbar() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [cartCount, setCartCount] = useState(0)
 
-  // Fetch cart count
   const fetchCartCount = async () => {
+    if (typeof window === 'undefined') return
     const customerId = localStorage.getItem('customer_id')
     if (!customerId) {
       setCartCount(0)
@@ -28,194 +24,192 @@ export default function Navbar() {
         .select('*', { count: 'exact', head: true })
         .eq('customer_id', customerId)
 
-      if (!error) {
-        setCartCount(count || 0)
-      }
+      if (!error) setCartCount(count || 0)
     } catch (error) {
       console.error('Error fetching cart count:', error)
     }
   }
 
   useEffect(() => {
-    // Check if customer is logged in
     const checkAuth = () => {
       const customerId = localStorage.getItem('customer_id')
-      setIsLoggedIn(!!customerId)
-      if (customerId) {
-        fetchCartCount()
-      } else {
-        setCartCount(0)
-      }
+      setIsLoggedIn(Boolean(customerId))
+      if (customerId) fetchCartCount()
+      else setCartCount(0)
     }
-    
+
     checkAuth()
-    
-    // Listen for storage changes (login/logout from other tabs)
     window.addEventListener('storage', checkAuth)
-    
-    // Check on route changes
     router.events?.on('routeChangeComplete', checkAuth)
-    
+
     return () => {
       window.removeEventListener('storage', checkAuth)
       router.events?.off('routeChangeComplete', checkAuth)
     }
   }, [router])
 
-  // Real-time cart updates
   useEffect(() => {
     if (!isLoggedIn) return
-    
+
     const customerId = localStorage.getItem('customer_id')
     if (!customerId) return
 
-    // Fetch initial count
     fetchCartCount()
 
     const channel = supabase
       .channel(`cart-changes-${customerId}`)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'cart_items', filter: `customer_id=eq.${customerId}` },
-        (payload) => {
-          console.log('Cart changed:', payload)
-          fetchCartCount()
-        }
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cart_items',
+          filter: `customer_id=eq.${customerId}`
+        },
+        () => fetchCartCount()
       )
-      .subscribe((status) => {
-        console.log('Cart subscription status:', status)
-      })
+      .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
     }
   }, [isLoggedIn])
 
-  // Also listen to custom cart update events from within the app
   useEffect(() => {
-    const handleCartUpdate = () => {
-      fetchCartCount()
-    }
-
+    const handleCartUpdate = () => fetchCartCount()
     window.addEventListener('cart-updated', handleCartUpdate)
-    
-    return () => {
-      window.removeEventListener('cart-updated', handleCartUpdate)
-    }
+    return () => window.removeEventListener('cart-updated', handleCartUpdate)
   }, [])
 
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [router.asPath])
+
+  const navLink = (href, label) => (
+    <Link
+      href={href}
+      className={`relative py-2 text-sm font-semibold transition-colors group ${
+        router.pathname === href ? 'text-slate-950' : 'text-slate-600 hover:text-slate-950'
+      }`}
+    >
+      {label}
+      <span
+        className={`absolute left-0 right-0 -bottom-0.5 h-0.5 origin-left rounded-full bg-[#ff5b22] transition-transform ${
+          router.pathname === href ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+        }`}
+      />
+    </Link>
+  )
+
   return (
-    <nav className="bg-white/70 backdrop-blur-md border-b border-white/20 shadow-lg sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="hover:opacity-80 transition-opacity">
-            <Logo size="small" />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-              Home
-            </Link>
-            <Link href="/products" className="text-gray-700 hover:text-slate-600 transition-colors font-medium">
-              Products
-            </Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-700 transition-colors font-medium">
-              Contact
-            </Link>
-            
-            {isLoggedIn ? (
-              <>
-                <Link href="/customer/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                  Dashboard
-                </Link>
-                <Link href="/customer/cart" className="relative px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md">
-                  My Cart
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white animate-pulse">
-                      {cartCount > 9 ? '9+' : cartCount}
-                    </span>
-                  )}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                  Customer Login
-                </Link>
-                <Link href="/auth/signup" className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md">
-                  Sign Up
-                </Link>
-              </>
-            )}
+    <>
+      <div className="bg-[#10151c] text-white">
+        <div className="site-shell flex min-h-9 items-center justify-between gap-4 text-[11px] sm:text-xs">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#ff5b22]" />
+            <span className="truncate font-medium tracking-wide">Car A/C parts • Amravati</span>
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 relative"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          <a
+            href="tel:+917741077666"
+            className="shrink-0 font-bold text-white hover:text-orange-300 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-            {isLoggedIn && cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white animate-pulse">
-                {cartCount > 9 ? '9+' : cartCount}
-              </span>
-            )}
-          </button>
+            +91 77410 77666
+          </a>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-blue-100 bg-gradient-to-b from-transparent to-blue-50/50">
-            <div className="flex flex-col space-y-2">
-              <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-4 py-2 hover:bg-blue-50 rounded-lg">
-                Home
-              </Link>
-              <Link href="/products" className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-4 py-2 hover:bg-blue-50 rounded-lg">
-                Products
-              </Link>
-              <Link href="/contact" className="text-gray-700 hover:text-cyan-600 transition-colors font-medium px-4 py-2 hover:bg-cyan-50 rounded-lg">
-                Contact
-              </Link>
-              
+      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+        <div className="site-shell">
+          <div className="flex h-[72px] items-center justify-between gap-6">
+            <Link href="/" className="shrink-0 rounded-xl focus-ring" aria-label="Empire Car A/C home">
+              <Logo size="small" />
+            </Link>
+
+            <div className="hidden lg:flex items-center gap-8">
+              {navLink('/', 'Home')}
+              {navLink('/products', 'Parts Catalogue')}
+              {navLink('/contact', 'Visit & Contact')}
+            </div>
+
+            <div className="hidden sm:flex items-center gap-2">
               {isLoggedIn ? (
                 <>
-                  <Link href="/customer/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-4 py-2 hover:bg-blue-50 rounded-lg">
+                  <Link
+                    href="/customer/dashboard"
+                    className="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950 transition-colors"
+                  >
                     Dashboard
                   </Link>
-                  <div className="px-4 py-2">
-                    <Link href="/customer/cart" className="relative inline-block w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md text-center">
-                      My Cart
-                      {cartCount > 0 && (
-                        <span className="absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white animate-pulse">
-                          {cartCount > 9 ? '9+' : cartCount}
-                        </span>
-                      )}
-                    </Link>
-                  </div>
+                  <Link
+                    href="/customer/cart"
+                    className="relative inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 transition-colors"
+                  >
+                    Cart
+                    {cartCount > 0 && (
+                      <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-[#ff5b22] px-1.5 text-[10px] font-black">
+                        {cartCount > 9 ? '9+' : cartCount}
+                      </span>
+                    )}
+                  </Link>
                 </>
               ) : (
                 <>
-                  <Link href="/auth/login" className="text-gray-700 hover:text-blue-600 transition-colors font-medium px-4 py-2 hover:bg-blue-50 rounded-lg">
+                  <Link
+                    href="/auth/login"
+                    className="px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950 transition-colors"
+                  >
                     Customer Login
                   </Link>
-                  <div className="px-4 py-2">
-                    <Link href="/auth/signup" className="inline-block w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all text-sm font-semibold shadow-md text-center">
-                      Sign Up
-                    </Link>
-                  </div>
+                  <Link href="/products" className="btn-primary py-2.5 px-4 text-sm">
+                    Find a Part
+                  </Link>
                 </>
               )}
             </div>
+
+            <button
+              type="button"
+              className="lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-900 shadow-sm focus-ring"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6l12 12M18 6L6 18" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16M4 12h16M4 17h16" />
+                )}
+              </svg>
+            </button>
           </div>
-        )}
-      </div>
-    </nav>
+
+          {mobileMenuOpen && (
+            <div className="lg:hidden border-t border-slate-200 py-4">
+              <div className="grid gap-1">
+                <Link href="/" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Home</Link>
+                <Link href="/products" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Parts Catalogue</Link>
+                <Link href="/contact" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Visit & Contact</Link>
+                {isLoggedIn ? (
+                  <>
+                    <Link href="/customer/dashboard" className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Dashboard</Link>
+                    <Link href="/customer/cart" className="rounded-xl px-4 py-3 text-sm font-bold text-slate-950 hover:bg-slate-50">
+                      Cart {cartCount > 0 ? `(${cartCount})` : ''}
+                    </Link>
+                  </>
+                ) : (
+                  <Link href="/auth/login" className="mt-2 rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-bold text-white">
+                    Customer Login
+                  </Link>
+                )}
+                <a href="tel:+917741077666" className="mt-2 rounded-xl border border-[#ffd6c7] bg-[#fff5f1] px-4 py-3 text-center text-sm font-bold text-[#dc4310]">
+                  Call +91 77410 77666
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+    </>
   )
 }
