@@ -85,6 +85,8 @@ export default function Navbar() {
     setMobileMenuOpen(false)
   }, [router.asPath])
 
+  const showPublicContactDock = !router.pathname.startsWith('/admin') && !router.pathname.startsWith('/customer')
+
   const navLink = (href, label) => (
     <Link
       href={href}
@@ -210,6 +212,26 @@ export default function Navbar() {
           )}
         </div>
       </nav>
+      {showPublicContactDock && (
+        <div className="fixed inset-x-3 bottom-3 z-[60] grid grid-cols-2 gap-2 sm:hidden">
+          <a
+            href="tel:+917741077666"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3.5 text-sm font-black text-white shadow-2xl ring-1 ring-white/10 backdrop-blur"
+          >
+            <span className="h-2 w-2 rounded-full bg-[#ff5b22]" />
+            Call +91 77410 77666
+          </a>
+          <a
+            href="https://wa.me/917741077666"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3.5 text-sm font-black text-slate-950 shadow-2xl ring-1 ring-slate-200"
+          >
+            WhatsApp
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      )}
     </>
   )
 }
