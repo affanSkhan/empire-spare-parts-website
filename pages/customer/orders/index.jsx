@@ -106,7 +106,7 @@ export default function CustomerOrders() {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   filter === value
                     ? 'bg-[#ff5b22] text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-white text-gray-700 hover:bg-[#f4f2ee] border border-black/10'
                 }`}
               >
                 {label}
@@ -117,7 +117,7 @@ export default function CustomerOrders() {
           {/* Orders List */}
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff5b1f] mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading orders...</p>
             </div>
           ) : orders.length === 0 ? (
