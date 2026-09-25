@@ -1,40 +1,20 @@
-import Image from 'next/image'
-
 export default function Logo({ className = "", size = "normal", showText = true }) {
   const sizes = {
-    small: {
-      text: "text-base sm:text-[17px]",
-      tagline: "text-[9px] sm:text-[10px]",
-      logo: 40,
-      logoClass: "w-10 h-10"
-    },
-    normal: {
-      text: "text-lg sm:text-xl",
-      tagline: "text-[10px] sm:text-xs",
-      logo: 50,
-      logoClass: "w-11 h-11 sm:w-12 sm:h-12"
-    },
-    large: {
-      text: "text-2xl sm:text-3xl md:text-4xl",
-      tagline: "text-xs sm:text-sm md:text-base",
-      logo: 80,
-      logoClass: "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24"
-    }
+    small: { mark: "h-10 w-10", text: "text-base sm:text-[17px]", tagline: "text-[9px] sm:text-[10px]" },
+    normal: { mark: "h-11 w-11 sm:h-12 sm:w-12", text: "text-lg sm:text-xl", tagline: "text-[10px] sm:text-xs" },
+    large: { mark: "h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24", text: "text-2xl sm:text-3xl md:text-4xl", tagline: "text-xs sm:text-sm md:text-base" }
   }
-
   const currentSize = sizes[size] || sizes.normal
 
   return (
     <div className={`flex items-center gap-2.5 sm:gap-3 ${className}`}>
-      <div className={`${currentSize.logoClass} rounded-2xl overflow-hidden bg-slate-950 flex-shrink-0 shadow-[0_8px_20px_rgba(15,23,42,0.16)] ring-1 ring-slate-200`}>
-        <Image
-          src="/Empire Car Ac  Logo Design.jpg"
-          alt="Empire Car A/C logo"
-          width={currentSize.logo}
-          height={currentSize.logo}
-          className="w-full h-full object-cover"
-          priority
-        />
+      <div className={`${currentSize.mark} flex-shrink-0 overflow-hidden rounded-2xl bg-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.16)] ring-1 ring-slate-200`}>
+        <svg viewBox="0 0 64 64" className="h-full w-full" role="img" aria-label="Empire Car A/C logo">
+          <rect x="0" y="0" width="64" height="64" rx="16" fill="#10151c" />
+          <circle cx="32" cy="32" r="16" fill="none" stroke="#ff5b22" strokeWidth="3.5" />
+          <path d="M32 13v38M13 32h38M18.6 18.6l26.8 26.8M45.4 18.6L18.6 45.4" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" opacity=".92" />
+          <circle cx="32" cy="32" r="5.5" fill="#ff5b22" stroke="#fff" strokeWidth="2" />
+        </svg>
       </div>
 
       {showText && (
