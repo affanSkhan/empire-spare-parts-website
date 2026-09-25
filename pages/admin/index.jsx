@@ -125,7 +125,7 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
-          <div className="card bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
+          <div className="card bg-[#0b0f13] text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/80 text-xs sm:text-sm mb-1">Total Customers</p>
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
 
         {/* Stats Cards - Row 2 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Link href="/admin/products" className="card bg-gradient-to-br from-slate-500 via-slate-600 to-gray-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
+          <Link href="/admin/products" className="card bg-slate-800 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/80 text-xs sm:text-sm mb-1">Total Products</p>
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
-          <div className="card bg-gradient-to-br from-cyan-500 via-sky-600 to-blue-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
+          <div className="card bg-[#ff5b1f] text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/80 text-xs sm:text-sm mb-1">Active Products</p>
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <Link href="/admin/categories" className="card bg-gradient-to-br from-purple-600 via-violet-600 to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
+          <Link href="/admin/categories" className="card bg-slate-800 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/80 text-xs sm:text-sm mb-1">Categories</p>
