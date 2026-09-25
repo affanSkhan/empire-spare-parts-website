@@ -128,7 +128,7 @@ export default function AdminLogin() {
 
               <button
                 type="submit"
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-slate-600 text-white rounded-lg hover:bg-[#dc4310] transition-all transform hover:scale-105 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full px-6 py-3 bg-[#ff5b1f] text-white rounded-lg hover:bg-[#dc4310] transition-all transform hover:scale-105 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 disabled={loading}
               >
                 {loading ? (
