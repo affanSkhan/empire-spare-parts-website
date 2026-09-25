@@ -147,7 +147,7 @@ export default function ProductsPage() {
                 <form
                   onSubmit={(event) => {
                     event.preventDefault()
-                    applyFilters(selectedCategory, searchTerm)
+                    applyFilters(selectedCategory, searchInput)
                   }}
                   className="rounded-[20px] bg-white p-3"
                 >
