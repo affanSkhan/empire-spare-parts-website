@@ -70,9 +70,9 @@ export default function CustomerDashboard() {
   const getStatusBadge = (status) => {
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      reviewed: 'bg-blue-100 text-blue-800 border-blue-200',
+      reviewed: 'bg-[#fff4ee] text-[#8d3417] border-[#ffc8ae]',
       approved: 'bg-green-100 text-green-800 border-green-200',
-      invoiced: 'bg-purple-100 text-purple-800 border-purple-200',
+      invoiced: 'bg-slate-100 text-slate-700 border-slate-200',
     }
 
     return (
@@ -146,8 +146,8 @@ export default function CustomerDashboard() {
           <Link href="/products">
             <div className="card hover:shadow-2xl transition-all cursor-pointer border-t-4 border-[#ff5b22]">
               <div className="flex items-center">
-                <div className="bg-blue-100 p-3 rounded-lg mr-4">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-[#fff4ee] p-3 rounded-lg mr-4">
+                  <svg className="w-6 h-6 text-[#dc4310]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -179,7 +179,7 @@ export default function CustomerDashboard() {
         {/* Recent Orders */}
         <div className="card">
           <h2 className="text-xl font-bold mb-4 flex items-center">
-            <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 mr-2 text-[#dc4310]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Recent Orders
