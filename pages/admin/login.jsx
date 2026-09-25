@@ -57,10 +57,10 @@ export default function AdminLogin() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center px-4 relative overflow-hidden">
+      <div className="min-h-screen bg-[#10151c] flex items-center justify-center px-4 relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute w-96 h-96 bg-blue-500/10 rounded-full blur-3xl top-1/4 left-1/4 animate-pulse"></div>
+          <div className="absolute w-96 h-96 bg-[#ff5b22]/10 rounded-full blur-3xl top-1/4 left-1/4 animate-pulse"></div>
           <div className="absolute w-96 h-96 bg-slate-500/10 rounded-full blur-3xl bottom-1/4 right-1/4 animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
 
@@ -72,19 +72,19 @@ export default function AdminLogin() {
                 <Logo size="large" showText={false} />
               </div>
               <h1 className="text-3xl font-bold text-white mb-1 drop-shadow-lg">Empire Car A/C</h1>
-              <p className="text-blue-200 font-medium">Admin Dashboard</p>
+              <p className="text-orange-200 font-medium">Admin Dashboard</p>
             </Link>
           </div>
 
           {/* Login Card */}
           <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
             <div className="flex items-center justify-center mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-slate-600 rounded-xl flex items-center justify-center mr-3">
+              <div className="w-12 h-12 bg-[#ff5b22] rounded-xl flex items-center justify-center mr-3">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">Sign In</h2>
+              <h2 className="text-2xl font-bold bg-[#ff5b22] bg-clip-text text-transparent">Sign In</h2>
             </div>
 
             {error && (
@@ -128,7 +128,7 @@ export default function AdminLogin() {
 
               <button
                 type="submit"
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-slate-600 text-white rounded-lg hover:from-blue-700 hover:to-slate-700 transition-all transform hover:scale-105 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-slate-600 text-white rounded-lg hover:bg-[#dc4310] transition-all transform hover:scale-105 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 disabled={loading}
               >
                 {loading ? (
@@ -146,7 +146,7 @@ export default function AdminLogin() {
             </form>
 
             <div className="mt-6 text-center">
-              <Link href="/" className="text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium inline-flex items-center gap-1">
+              <Link href="/" className="text-sm text-[#dc4310] hover:text-[#b9380c] hover:underline font-medium inline-flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
