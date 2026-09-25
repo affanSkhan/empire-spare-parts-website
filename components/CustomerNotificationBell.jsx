@@ -211,7 +211,7 @@ export default function CustomerNotificationBell() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[500px] overflow-hidden flex flex-col">
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <div className="px-4 py-3 bg-[#0b0f13] text-white">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">Notifications</h3>
               {unreadCount > 0 && (
