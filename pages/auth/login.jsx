@@ -64,11 +64,22 @@ export default function LoginPage() {
 
       <Navbar />
 
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 py-8 sm:py-12 lg:py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-center bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+      <main className="min-h-screen bg-[#f7f8fa] py-10 sm:py-14 lg:py-20">
+        <div className="site-shell">
+          <div className="mx-auto grid max-w-4xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(16,21,28,0.08)] lg:grid-cols-[.9fr_1.1fr]">
+            <div className="hidden bg-[#10151c] p-8 text-white lg:flex lg:flex-col lg:justify-between lg:p-10">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff8e68]">Customer account</p>
+                <h2 className="mt-4 text-4xl font-black tracking-[-0.05em]">Keep your parts enquiries in one place.</h2>
+                <p className="mt-4 text-sm leading-7 text-slate-400">Use your registered WhatsApp number to access your customer account, cart and orders.</p>
+              </div>
+              <a href="tel:+917741077666" className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 hover:bg-white/[0.08]">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">Need help?</p>
+                <p className="mt-1 text-sm font-bold">+91 77410 77666</p>
+              </a>
+            </div>
+            <div className="p-6 sm:p-8 lg:p-10">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-center text-slate-950">
                 Welcome Back
               </h1>
               <p className="text-center text-gray-600 mb-2">
@@ -135,7 +146,7 @@ export default function LoginPage() {
               <div className="mt-6 text-center">
                 <p className="text-gray-600">
                   Don't have an account?{' '}
-                  <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-semibold">
+                  <Link href="/auth/signup" className="text-[#dc4310] hover:text-[#b9380c] font-bold">
                     Sign Up
                   </Link>
                 </p>
