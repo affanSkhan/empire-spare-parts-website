@@ -1,75 +1,76 @@
 import Link from 'next/link'
 import Logo from './Logo'
 
-/**
- * Footer Component
- * Displays footer for public pages
- */
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-12 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-slate-900/30 to-blue-900/20"></div>
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* About Section */}
+    <footer className="bg-[#10151c] text-white relative overflow-hidden">
+      <div className="absolute -right-24 -top-32 h-72 w-72 rounded-full bg-[#ff5b22]/10 blur-3xl" />
+      <div className="absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+
+      <div className="site-shell relative py-14 sm:py-16">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_.7fr_1fr]">
           <div>
-            <div className="mb-4">
-              <Logo size="small" className="[&_.text-gray-900]:text-white [&_.bg-gradient-to-r]:from-slate-400 [&_.bg-gradient-to-r]:to-blue-400" />
-            </div>
-            <p className="text-gray-300 mb-3">
-              Amravati's trusted source for car air conditioning spare parts and accessories.
+            <Logo
+              size="small"
+              className="[&_.text-slate-950]:!text-white [&_.text-slate-500]:!text-slate-400"
+            />
+            <p className="mt-5 max-w-md text-sm leading-7 text-slate-400">
+              Car A/C spare parts and specialist support in Amravati. Tell us the vehicle and part you need, and we’ll help you find the right fit.
             </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-slate-300">A/C Parts</span>
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-slate-300">Vehicle Fitment</span>
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold text-slate-300">Amravati</span>
+            </div>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/" className="text-gray-300 hover:text-white transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/products" className="text-gray-300 hover:text-white transition-colors">
-                  Products
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
+            <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-300">Explore</h3>
+            <div className="mt-5 grid gap-3 text-sm">
+              <Link href="/" className="text-slate-400 transition-colors hover:text-white">Home</Link>
+              <Link href="/products" className="text-slate-400 transition-colors hover:text-white">Parts Catalogue</Link>
+              <Link href="/contact" className="text-slate-400 transition-colors hover:text-white">Visit & Contact</Link>
+              <Link href="/auth/login" className="text-slate-400 transition-colors hover:text-white">Customer Login</Link>
+            </div>
           </div>
 
-          {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-slate-300">Talk to Empire</h3>
+            <a
+              href="tel:+917741077666"
+              className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 transition-colors hover:bg-white/[0.08]"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff5b22] text-white">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 011.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                +91 77410 77666
-              </li>
-              <li className="flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Empirecarac@gmail.com
-              </li>
-            </ul>
+              </span>
+              <span>
+                <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Call</span>
+                <span className="mt-0.5 block text-base font-bold text-white">+91 77410 77666</span>
+              </span>
+            </a>
+            <a href="mailto:Empirecarac@gmail.com" className="mt-3 inline-flex text-sm text-slate-400 hover:text-white">
+              Empirecarac@gmail.com
+            </a>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-700/50 mt-8 pt-8 text-center">
-          <p className="text-gray-400">&copy; {currentYear} Empire Car A/C. All rights reserved.</p>
-          <p className="text-gray-500 text-lg mt-2">
-            Designed and developed by <a href="https://affan.tech" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-blue-500 hover:via-purple-600 hover:to-pink-600 transition-all font-semibold">Affan.Tech</a>
+        <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {currentYear} Empire Car A/C. All rights reserved.</p>
+          <p>
+            Website by{' '}
+            <a
+              href="https://affan.tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-slate-300 hover:text-white"
+            >
+              Affan.Tech
+            </a>
           </p>
         </div>
       </div>
