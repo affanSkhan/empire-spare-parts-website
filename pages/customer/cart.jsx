@@ -205,7 +205,7 @@ export default function CartPage() {
 
   const getProductImage = (product) => {
     const primaryImage = product.images?.find(img => img.is_primary)
-    return primaryImage?.image_url || product.images?.[0]?.image_url || '/placeholder-product.png'
+    return primaryImage?.image_url || product.images?.[0]?.image_url || null
   }
 
   return (
@@ -216,7 +216,7 @@ export default function CartPage() {
       </Head>
 
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-slate-950">
           Shopping Cart
         </h1>
 
@@ -245,12 +245,16 @@ export default function CartPage() {
                   <div className="flex flex-col sm:flex-row gap-4">
                     {/* Product Image */}
                     <div className="relative w-full sm:w-24 h-48 sm:h-24 flex-shrink-0">
-                      <Image
-                        src={getProductImage(item.product)}
-                        alt={item.product.name}
-                        fill
-                        className="object-cover rounded-lg"
-                      />
+                      {getProductImage(item.product) ? (
+                        <Image
+                          src={getProductImage(item.product)}
+                          alt={item.product.name}
+                          fill
+                          className="object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center rounded-lg bg-slate-950 text-2xl text-white">⌁</div>
+                      )}
                     </div>
 
                     {/* Product Info */}
