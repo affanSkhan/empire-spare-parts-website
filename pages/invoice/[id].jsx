@@ -347,8 +347,8 @@ export default function PublicInvoicePage() {
                 <div className="text-center space-y-1">
                   <p className="text-xs sm:text-sm text-gray-600">{businessInfo.address}</p>
                   <p className="text-xs sm:text-sm text-gray-600">{businessInfo.city}, {businessInfo.state} {businessInfo.zipCode}</p>
-                  <p className="text-xs sm:text-sm text-gray-600">Phone: <a href="tel:{businessInfo.phone}" className="text-primary-600 hover:underline">{businessInfo.phone}</a></p>
-                  <p className="text-xs sm:text-sm text-gray-600">Website: <a href="https://{businessInfo.website}" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline break-all">{businessInfo.website}</a></p>
+                  <p className="text-xs sm:text-sm text-gray-600">Phone: <a href={`tel:${businessInfo.phone}`} className="text-[#dc4310] hover:underline">{businessInfo.phone}</a></p>
+                  <p className="text-xs sm:text-sm text-gray-600">Website: <a href={`https://${businessInfo.website}`} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline break-all">{businessInfo.website}</a></p>
                 </div>
               </div>
 
