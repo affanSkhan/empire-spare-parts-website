@@ -66,6 +66,24 @@ function MotionRuntime() {
   }, [router.events])
 
   useEffect(() => {
+    const updateScrollProgress = () => {
+      const root = document.documentElement
+      const scrollable = root.scrollHeight - window.innerHeight
+      const percent = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0
+      root.style.setProperty('--scroll-progress', percent.toFixed(2) + '%')
+    }
+
+    updateScrollProgress()
+    window.addEventListener('scroll', updateScrollProgress, { passive: true })
+    window.addEventListener('resize', updateScrollProgress)
+
+    return () => {
+      window.removeEventListener('scroll', updateScrollProgress)
+      window.removeEventListener('resize', updateScrollProgress)
+    }
+  }, [])
+
+  useEffect(() => {
     const setupMotion = () => {
       const elements = Array.from(document.querySelectorAll('.reveal, .clip-reveal, .image-reveal'))
       if (!elements.length) return
@@ -111,7 +129,12 @@ function MotionRuntime() {
     return () => window.clearTimeout(timer)
   }, [router.asPath])
 
-  return routeChanging ? <div className="route-curtain" aria-hidden="true" /> : null
+  return (
+    <>
+      <div className="scroll-progress" aria-hidden="true"><span /></div>
+      {routeChanging ? <div className="route-curtain" aria-hidden="true" /> : null}
+    </>
+  )
 }
 
 export default function App({ Component, pageProps }) {
