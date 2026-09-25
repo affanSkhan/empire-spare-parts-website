@@ -10,7 +10,7 @@ export default function ProductCard({ product }) {
   const [showMessage, setShowMessage] = useState(false)
 
   const getPrimaryImage = () => {
-    if (!product.images || product.images.length === 0) return '/placeholder-product.png'
+    if (!product.images || product.images.length === 0) return null
     const primary = product.images.find((img) => img.is_primary)
     return primary ? primary.image_url : product.images[0].image_url
   }
@@ -78,13 +78,19 @@ export default function ProductCard({ product }) {
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_24px_rgba(16,21,28,0.045)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(16,21,28,0.1)]">
       <Link href={buildProductUrl()} className="block focus:outline-none focus:ring-4 focus:ring-blue-100">
         <div className="relative aspect-[4/3] overflow-hidden bg-[#f4f6f8]">
-          <Image
-            src={getPrimaryImage()}
-            alt={product.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-          />
+          {getPrimaryImage() ? (
+            <Image
+              src={getPrimaryImage()}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-950 text-2xl text-white">⌁</div>
+            </div>
+          )}
           <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
             {product.category ? (
               <span className="rounded-full border border-white/30 bg-slate-950/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur">
