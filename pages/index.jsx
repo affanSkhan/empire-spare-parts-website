@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import Navbar from '@/components/Navbar'
@@ -83,7 +84,15 @@ export default function Home() {
       <main className="overflow-hidden bg-[#f4f2ee]">
         <section className="noise relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#0b0f13] text-white">
           <div className="absolute inset-0">
-            <img src={heroImage} alt="" className="hero-float h-full w-full object-cover object-center opacity-[.68]" />
+            <Image
+              src={heroImage}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              quality={78}
+              className="hero-float object-cover object-center opacity-[.68]"
+            />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,8,11,.96)_0%,rgba(5,8,11,.75)_40%,rgba(5,8,11,.22)_100%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_32%,rgba(255,91,31,.22),transparent_28%)]" />
           </div>
@@ -237,24 +246,14 @@ export default function Home() {
             <div className="hidden lg:block">
               <div className="sticky top-[82px] flex h-[calc(100vh-82px)] items-center py-10">
                 <div className="relative h-[78vh] w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#151b22]">
-                  <img
+                  <Image
                     key={stories[activeStory].number}
                     src={stories[activeStory].image}
-                    alt=""
-                    loading="eager"
-                    decoding="async"
-                    className="absolute inset-0 z-10 h-full w-full object-contain bg-[#f4f2ee] transition-all duration-700"
-                    onError={(event) => {
-                      const node = event.currentTarget
-                      if (node.dataset.fallback !== 'used') {
-                        node.dataset.fallback = 'used'
-                        node.src = activeStory === 1
-                          ? '/showcase/blower-resistance.jpg'
-                          : activeStory === 2
-                            ? '/showcase/radiator-fan.jpg'
-                            : '/showcase/wiring-socket.jpg'
-                      }
-                    }}
+                    alt={stories[activeStory].title}
+                    fill
+                    priority
+                    sizes="(max-width: 1280px) 55vw, 650px"
+                    className="z-10 object-contain bg-[#f4f2ee] transition-all duration-700"
                   />
                   <div className="pointer-events-none absolute inset-0 z-20 bg-[radial-gradient(circle_at_center,rgba(255,91,31,.08),transparent_42%)]" />
                   <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-black/35 via-transparent to-black/5" />
@@ -273,23 +272,12 @@ export default function Home() {
               {stories.map((story, index) => (
                 <article key={story.number} data-story-index={index} className="flex min-h-[78vh] flex-col justify-center border-b border-white/10 py-20 last:border-0 lg:min-h-screen lg:px-12">
                   <div className="image-reveal relative mb-8 aspect-[4/3] overflow-hidden rounded-[30px] bg-[#151b22] lg:hidden">
-                    <img
+                    <Image
                       src={story.image}
                       alt={story.title}
-                      loading="eager"
-                      decoding="async"
-                      className="h-full w-full object-contain bg-[#f4f2ee]"
-                      onError={(event) => {
-                        const node = event.currentTarget
-                        if (node.dataset.fallback !== 'used') {
-                          node.dataset.fallback = 'used'
-                          node.src = index === 1
-                            ? '/showcase/blower-resistance.jpg'
-                            : index === 2
-                              ? '/showcase/radiator-fan.jpg'
-                              : '/showcase/wiring-socket.jpg'
-                        }
-                      }}
+                      fill
+                      sizes="100vw"
+                      className="object-contain bg-[#f4f2ee]"
                     />
                   </div>
                   <span className="eyebrow !text-[#ff8e68] reveal">{story.number} / {story.label}</span>
@@ -317,7 +305,7 @@ export default function Home() {
 
               <div className="image-reveal reveal reveal-delay-2 overflow-hidden rounded-[36px] bg-[#0b0f13] text-white shadow-[0_28px_80px_rgba(11,15,19,.12)]">
                 <div className="relative min-h-[460px]">
-                  <img src={heroImage} alt="" className="hero-float absolute inset-0 h-full w-full object-cover opacity-[.55]" loading="lazy" />
+                  <Image src={heroImage} alt="" fill sizes="(max-width: 1024px) 100vw, 65vw" quality={72} className="hero-float object-cover opacity-[.55]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f13] via-black/10 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-9">
                     <p className="text-[9px] font-black uppercase tracking-[.18em] text-[#ff8e68]">Give us the context</p>
