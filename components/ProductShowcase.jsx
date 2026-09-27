@@ -1,36 +1,47 @@
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
+
+const fallbackImages = [
+  '/showcase/wiring-socket.jpg',
+  '/showcase/blower-resistance.jpg',
+  '/showcase/radiator-fan.jpg',
+  '/showcase/motor-gear.jpg'
+]
 
 export default function ProductShowcase() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
+
     async function loadProducts() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .select('id, name, slug, brand, car_model, description, category:categories(id, name, slug), images:product_images(image_url, is_primary)')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
         .limit(4)
 
+      if (cancelled) return
+      if (error) console.error('[ProductShowcase]', error)
       setProducts(data || [])
       setLoading(false)
     }
 
     loadProducts()
+    return () => { cancelled = true }
   }, [])
 
-  const getImage = (product) => {
-    if (!product.images?.length) return null
-    const primary = product.images.find((image) => image.is_primary)
-    return primary?.image_url || product.images[0]?.image_url || null
+  const getImage = (product, index) => {
+    return product.images?.find((image) => image.is_primary)?.image_url
+      || product.images?.[0]?.image_url
+      || fallbackImages[index % fallbackImages.length]
   }
 
   return (
-    <section className="bg-[#f4f2ee] py-20 sm:py-28 lg:py-36">
+    <section className="bg-[#f4f2ee] py-24 sm:py-28 lg:py-36 scroll-mt-[96px]">
       <div className="site-shell">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
@@ -39,7 +50,7 @@ export default function ProductShowcase() {
               See the parts.<br />Open the details.
             </h2>
             <p className="reveal reveal-delay-2 mt-5 max-w-2xl text-base leading-7 text-[#68727f]">
-              The homepage pulls from the active catalogue, so the visual experience is connected to real product data instead of static marketing cards.
+              A live selection from the active catalogue, with resilient image fallbacks so one missing product image never leaves a blank interface.
             </p>
           </div>
 
@@ -50,49 +61,51 @@ export default function ProductShowcase() {
 
         {loading ? (
           <div className="mt-10 grid gap-4 lg:grid-cols-2">
-            <div className="h-[430px] animate-pulse rounded-[34px] bg-[#e8e5de]" />
+            <div className="h-[440px] animate-pulse rounded-[34px] bg-[#e5e1d8]" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="h-[205px] animate-pulse rounded-[28px] bg-[#e8e5de]" />
-              <div className="h-[205px] animate-pulse rounded-[28px] bg-[#e8e5de]" />
-              <div className="h-[205px] animate-pulse rounded-[28px] bg-[#e8e5de]" />
-              <div className="h-[205px] animate-pulse rounded-[28px] bg-[#e8e5de]" />
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="h-[208px] animate-pulse rounded-[28px] bg-[#e5e1d8]" />
+              ))}
             </div>
           </div>
-        ) : products.length ? (
+        ) : products.length > 0 ? (
           <div className="mt-10 grid gap-4 lg:grid-cols-2">
             {products.map((product, index) => {
-              const image = getImage(product)
               const featured = index === 0
+              const image = getImage(product, index)
+
               return (
                 <Link
                   key={product.id}
                   href={'/products/' + product.slug}
                   className={
-                    'group reveal relative overflow-hidden rounded-[34px] bg-[#0b0f13] text-white ' +
-                    (featured ? 'min-h-[430px] lg:row-span-2' : 'min-h-[205px]')
+                    'group relative overflow-hidden rounded-[34px] bg-[#0b0f13] text-white shadow-[0_18px_50px_rgba(11,15,19,.10)] ' +
+                    (featured ? 'min-h-[440px] lg:row-span-2' : 'min-h-[208px]')
                   }
                 >
-                  {image ? (
-                    <Image
-                      src={image}
-                      alt={product.name}
-                      fill
-                      className={
-                        'object-contain transition duration-[1100ms] ease-out group-hover:scale-105 ' +
-                        (featured ? 'p-10 sm:p-14' : 'p-7')
+                  <img
+                    src={image}
+                    alt={product.name}
+                    loading="lazy"
+                    decoding="async"
+                    className={
+                      'absolute inset-0 h-full w-full object-contain transition-transform duration-[1100ms] ease-out group-hover:scale-105 ' +
+                      (featured ? 'p-10 sm:p-14' : 'p-7')
+                    }
+                    onError={(event) => {
+                      const node = event.currentTarget
+                      const fallback = fallbackImages[(index + 1) % fallbackImages.length]
+                      if (node.dataset.fallback !== 'used') {
+                        node.dataset.fallback = 'used'
+                        node.src = fallback
                       }
-                      sizes={featured ? '(max-width: 1024px) 100vw, 50vw' : '(max-width: 1024px) 50vw, 25vw'}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_center,rgba(255,91,31,.16),transparent_38%)]">
-                      <div className="flex h-20 w-20 items-center justify-center rounded-[26px] border border-white/10 bg-white/[.05] text-3xl">⌁</div>
-                    </div>
-                  )}
+                    }}
+                  />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f13] via-[#0b0f13]/5 to-transparent opacity-95" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f13] via-[#0b0f13]/5 to-transparent" />
 
                   {product.category && (
-                    <span className="absolute left-5 top-5 rounded-full border border-white/12 bg-black/25 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.16em] text-white/75 backdrop-blur-xl">
+                    <span className="absolute left-5 top-5 rounded-full border border-white/12 bg-black/25 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.16em] text-white/80 backdrop-blur-xl">
                       {product.category.name}
                     </span>
                   )}
@@ -112,7 +125,9 @@ export default function ProductShowcase() {
                           </p>
                         )}
                       </div>
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/[.06] text-lg transition-transform duration-500 group-hover:translate-x-1 group-hover:bg-[#ff5b1f]">→</span>
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/[.06] text-lg transition-all duration-500 group-hover:translate-x-1 group-hover:bg-[#ff5b1f]">
+                        →
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -120,11 +135,11 @@ export default function ProductShowcase() {
             })}
 
             {products.length < 4 && (
-              <Link href="/products" className="group flex min-h-[205px] items-end rounded-[34px] border border-dashed border-black/15 bg-white p-7 transition-all duration-500 hover:-translate-y-1 hover:border-black/25 hover:shadow-[0_20px_50px_rgba(11,15,19,.06)]">
+              <Link href="/products" className="group flex min-h-[208px] items-end rounded-[34px] border border-dashed border-black/15 bg-white p-7 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(11,15,19,.07)]">
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-[.18em] text-[#ff5b1f]">More in catalogue</p>
                   <h3 className="mt-2 text-2xl font-black tracking-[-.035em]">Browse every active part.</h3>
-                  <span className="mt-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#0b0f13] text-white transition-transform duration-500 group-hover:translate-x-1">→</span>
+                  <span className="mt-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#0b0f13] text-white">→</span>
                 </div>
               </Link>
             )}
