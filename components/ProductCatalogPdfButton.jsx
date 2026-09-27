@@ -36,135 +36,162 @@ function getCatalogueFingerprint(products) {
     .join('||')
 }
 
-async function readCachedImage(key) {
-  if (typeof indexedDB === 'undefined') return null
+const PDF_CACHE_NAME = 'empire-catalogue-pdf-v2-hq'
+const PDF_CACHE_VERSION = 2
+const PDF_STORE = 'pdfs'
+const IMAGE_STORE = 'images'
 
-  return await new Promise((resolve) => {
+function openPdfCacheDb() {
+  if (typeof indexedDB === 'undefined') return Promise.resolve(null)
+
+  return new Promise((resolve) => {
     try {
-      const request = indexedDB.open(PDF_CACHE_NAME, 1)
+      const request = indexedDB.open(PDF_CACHE_NAME, PDF_CACHE_VERSION)
 
       request.onupgradeneeded = () => {
         const db = request.result
-        if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
-      if (!db.objectStoreNames.contains('images')) db.createObjectStore('images')
-        if (!db.objectStoreNames.contains('images')) db.createObjectStore('images')
+
+        if (!db.objectStoreNames.contains(PDF_STORE)) {
+          db.createObjectStore(PDF_STORE)
+        }
+
+        if (!db.objectStoreNames.contains(IMAGE_STORE)) {
+          db.createObjectStore(IMAGE_STORE)
+        }
       }
 
       request.onsuccess = () => {
         const db = request.result
-        const tx = db.transaction('images', 'readonly')
-        const getRequest = tx.objectStore('images').get(key)
 
-        getRequest.onsuccess = () => {
-          resolve(getRequest.result || null)
+        // Defensive check for older/partially initialized databases.
+        if (!db.objectStoreNames.contains(PDF_STORE) || !db.objectStoreNames.contains(IMAGE_STORE)) {
           db.close()
-        }
-
-        getRequest.onerror = () => {
           resolve(null)
-          db.close()
+          return
         }
+
+        db.onversionchange = () => db.close()
+        resolve(db)
       }
 
       request.onerror = () => resolve(null)
+      request.onblocked = () => resolve(null)
     } catch {
       resolve(null)
     }
   })
 }
 
-async function writeCachedImage(key, dataUrl) {
-  if (typeof indexedDB === 'undefined' || !dataUrl) return
+async function readCachedImage(key) {
+  const db = await openPdfCacheDb()
+  if (!db) return null
 
   try {
-    const request = indexedDB.open(PDF_CACHE_NAME, 1)
+    return await new Promise((resolve) => {
+      const tx = db.transaction(IMAGE_STORE, 'readonly')
+      const request = tx.objectStore(IMAGE_STORE).get(key)
 
-    request.onupgradeneeded = () => {
-      const db = request.result
-      if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
-      if (!db.objectStoreNames.contains('images')) db.createObjectStore('images')
-    }
+      request.onsuccess = () => resolve(request.result || null)
+      request.onerror = () => resolve(null)
 
-    request.onsuccess = () => {
-      const db = request.result
-      const tx = db.transaction('images', 'readwrite')
-      tx.objectStore('images').put(dataUrl, key)
       tx.oncomplete = () => db.close()
-      tx.onerror = () => db.close()
-    }
+      tx.onerror = () => {
+        try { db.close() } catch {}
+        resolve(null)
+      }
+      tx.onabort = () => {
+        try { db.close() } catch {}
+        resolve(null)
+      }
+    })
   } catch {
-    // Image cache is an optimization only.
+    try { db.close() } catch {}
+    return null
+  }
+}
+
+async function writeCachedImage(key, dataUrl) {
+  if (!dataUrl) return
+
+  const db = await openPdfCacheDb()
+  if (!db) return
+
+  try {
+    const tx = db.transaction(IMAGE_STORE, 'readwrite')
+    tx.objectStore(IMAGE_STORE).put(dataUrl, key)
+
+    await new Promise((resolve) => {
+      tx.oncomplete = resolve
+      tx.onerror = resolve
+      tx.onabort = resolve
+    })
+  } catch {
+    // Browser cache is optional. Never block PDF generation.
+  } finally {
+    try { db.close() } catch {}
   }
 }
 
 async function readPdfCache(key) {
-  if (typeof indexedDB === 'undefined') return null
+  const db = await openPdfCacheDb()
+  if (!db) return null
 
-  return await new Promise((resolve) => {
-    try {
-      const request = indexedDB.open(PDF_CACHE_NAME, 1)
+  try {
+    return await new Promise((resolve) => {
+      const tx = db.transaction(PDF_STORE, 'readonly')
+      const request = tx.objectStore(PDF_STORE).get(key)
 
-      request.onupgradeneeded = () => {
-        const db = request.result
-        if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
-      }
-
-      request.onsuccess = () => {
-        const db = request.result
-        const tx = db.transaction('pdfs', 'readonly')
-        const store = tx.objectStore('pdfs')
-        const getRequest = store.get(key)
-
-        getRequest.onsuccess = () => {
-          resolve(getRequest.result || null)
-          db.close()
-        }
-
-        getRequest.onerror = () => {
-          resolve(null)
-          db.close()
-        }
-      }
-
+      request.onsuccess = () => resolve(request.result || null)
       request.onerror = () => resolve(null)
-    } catch {
-      resolve(null)
-    }
-  })
+
+      tx.oncomplete = () => db.close()
+      tx.onerror = () => {
+        try { db.close() } catch {}
+        resolve(null)
+      }
+      tx.onabort = () => {
+        try { db.close() } catch {}
+        resolve(null)
+      }
+    })
+  } catch {
+    try { db.close() } catch {}
+    return null
+  }
 }
 
 async function writePdfCache(key, blob) {
-  if (typeof indexedDB === 'undefined' || !blob) return
+  if (!blob) return
+
+  const db = await openPdfCacheDb()
+  if (!db) return
 
   try {
-    const request = indexedDB.open(PDF_CACHE_NAME, 1)
+    const tx = db.transaction(PDF_STORE, 'readwrite')
+    tx.objectStore(PDF_STORE).put({
+      blob,
+      cachedAt: Date.now()
+    }, key)
 
-    request.onupgradeneeded = () => {
-      const db = request.result
-      if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
-    }
-
-    request.onsuccess = () => {
-      const db = request.result
-      const tx = db.transaction('pdfs', 'readwrite')
-      tx.objectStore('pdfs').put({
-        blob,
-        cachedAt: Date.now()
-      }, key)
-      tx.oncomplete = () => db.close()
-      tx.onerror = () => db.close()
-    }
+    await new Promise((resolve) => {
+      tx.oncomplete = resolve
+      tx.onerror = resolve
+      tx.onabort = resolve
+    })
   } catch {
-    // Cache is an optimization only; never block download if it fails.
+    // Browser cache is optional. Never block PDF generation.
+  } finally {
+    try { db.close() } catch {}
   }
 }
+
 
 function getReference(product) {
   const id = String(product?.id || '').replace(/-/g, '').slice(0, 8).toUpperCase()
   return id ? 'EC-' + id : 'EC-CATALOG'
 }
 
-function getOptimizedSource(src, width = 360, quality = 58) {
+function getOptimizedSource(src, width = 640, quality = 80) {
   if (!src) return null
 
   // Route every catalogue image through Next's image optimizer first.
