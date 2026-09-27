@@ -21,14 +21,14 @@ const stories = [
     label: 'VERIFY',
     title: 'Then check the fit.',
     body: 'Open the component page, review the available vehicle and brand context, then use direct contact when the exact match needs confirmation.',
-    image: '/showcase/blower-resistance.jpg'
+    image: 'https://www.empirecarac.in/showcase/blower-resistance.jpg'
   },
   {
     number: '03',
     label: 'CONNECT',
     title: 'Finish with a real conversation.',
     body: 'For stock, pricing or a difficult identification, send the vehicle details or a photo of the old component directly to Empire.',
-    image: '/showcase/radiator-fan.jpg'
+    image: 'https://www.empirecarac.in/showcase/radiator-fan.jpg'
   }
 ]
 
@@ -236,7 +236,10 @@ export default function Home() {
           <div className="site-shell grid lg:grid-cols-[.82fr_1.18fr]">
             <div className="hidden lg:block">
               <div className="sticky top-[82px] flex h-[calc(100vh-82px)] items-center py-10">
-                <div className="relative h-[78vh] w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#151b22]">
+                <div
+                  className="relative h-[78vh] w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#151b22]"
+                  style={{ backgroundImage: 'linear-gradient(rgba(11,15,19,.10), rgba(11,15,19,.25)), url(' + stories[activeStory].image + ')', backgroundSize: 'cover', backgroundPosition: 'center' }}
+                >
                   {stories.map((story, index) => (
                     <img
                       key={story.number}
@@ -244,7 +247,7 @@ export default function Home() {
                       alt=""
                       loading={index === 0 ? 'eager' : 'lazy'}
                       className={
-                        'absolute inset-0 h-full w-full object-contain p-10 sm:p-14 transition-all duration-[1200ms] ease-out ' +
+                        'absolute inset-0 h-full w-full object-cover transition-all duration-[1200ms] ease-out ' +
                         (activeStory === index ? 'scale-100 opacity-100' : 'scale-105 opacity-0')
                       }
                     />
@@ -265,7 +268,7 @@ export default function Home() {
               {stories.map((story, index) => (
                 <article key={story.number} data-story-index={index} className="flex min-h-[78vh] flex-col justify-center border-b border-white/10 py-20 last:border-0 lg:min-h-screen lg:px-12">
                   <div className="image-reveal relative mb-8 aspect-[4/3] overflow-hidden rounded-[30px] bg-[#151b22] lg:hidden">
-                    <img src={story.image} alt="" className="h-full w-full object-contain p-8" loading={index === 0 ? 'eager' : 'lazy'} />
+                    <img src={story.image} alt="" className="h-full w-full object-cover" loading={index === 0 ? 'eager' : 'lazy'} />
                   </div>
                   <span className="eyebrow !text-[#ff8e68] reveal">{story.number} / {story.label}</span>
                   <h2 className="reveal reveal-delay-1 mt-5 max-w-3xl text-5xl font-black leading-[.92] tracking-[-.055em] sm:text-6xl lg:text-7xl">{story.title}</h2>
