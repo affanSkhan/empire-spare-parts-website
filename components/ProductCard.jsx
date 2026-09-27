@@ -17,7 +17,10 @@ export default function ProductCard({ product }) {
   const [imageIndex, setImageIndex] = useState(0)
 
   const remoteImage = product.images?.find((img) => img.is_primary)?.image_url || product.images?.[0]?.image_url || null
-  const imageSrc = imageIndex === 0 ? remoteImage : fallbackImages[(Number(product.id?.toString().slice(-2) || 0) + imageIndex - 1) % fallbackImages.length]
+  const fallbackIndex = Number(product.id?.toString().slice(-2) || 0) % fallbackImages.length
+  const imageSrc = imageIndex === 0
+    ? (remoteImage || fallbackImages[fallbackIndex])
+    : fallbackImages[(fallbackIndex + imageIndex) % fallbackImages.length]
 
   async function handleAddToCart(event) {
     event.preventDefault()
