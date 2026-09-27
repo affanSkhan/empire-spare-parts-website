@@ -10,10 +10,10 @@ import { supabase } from '@/lib/supabaseClient'
 const whatsappNumber = '917741077666'
 const phoneNumber = '+917741077666'
 const fallbackImages = [
-  '/showcase/wiring-socket.jpg',
+  '/showcase/blower-resistance.jpg',
   '/showcase/blower-resistance.jpg',
   '/showcase/radiator-fan.jpg',
-  '/showcase/motor-gear.jpg'
+  '/showcase/radiator-fan.jpg'
 ]
 
 export default function ProductDetailsPage() {
