@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 import Head from 'next/head';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -341,7 +342,7 @@ export default function PublicInvoicePage() {
               {/* Business Header */}
               <div className="mb-6 sm:mb-8 border-b pb-4 sm:pb-6">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                  <img src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C Logo" className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover" />
+                  <Image src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C Logo" width={80} height={80} priority className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20" />
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 text-center">{businessInfo.name}</h1>
                 </div>
                 <div className="text-center space-y-1">
