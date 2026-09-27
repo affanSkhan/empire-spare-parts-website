@@ -20,6 +20,84 @@ function truncate(text = '', max = 70) {
   return value.length > max ? value.slice(0, max - 1).trimEnd() + '...' : value
 }
 
+
+
+const PDF_CACHE_NAME = 'empire-catalogue-pdf-v1'
+
+function getCatalogueFingerprint(products) {
+  return products
+    .map((product) => [
+      product?.id,
+      product?.updated_at,
+      product?.name,
+      product?.price,
+      product?.images?.find((image) => image?.is_primary)?.image_url || product?.images?.[0]?.image_url || ''
+    ].join('|'))
+    .join('||')
+}
+
+async function readPdfCache(key) {
+  if (typeof indexedDB === 'undefined') return null
+
+  return await new Promise((resolve) => {
+    try {
+      const request = indexedDB.open(PDF_CACHE_NAME, 1)
+
+      request.onupgradeneeded = () => {
+        const db = request.result
+        if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
+      }
+
+      request.onsuccess = () => {
+        const db = request.result
+        const tx = db.transaction('pdfs', 'readonly')
+        const store = tx.objectStore('pdfs')
+        const getRequest = store.get(key)
+
+        getRequest.onsuccess = () => {
+          resolve(getRequest.result || null)
+          db.close()
+        }
+
+        getRequest.onerror = () => {
+          resolve(null)
+          db.close()
+        }
+      }
+
+      request.onerror = () => resolve(null)
+    } catch {
+      resolve(null)
+    }
+  })
+}
+
+async function writePdfCache(key, blob) {
+  if (typeof indexedDB === 'undefined' || !blob) return
+
+  try {
+    const request = indexedDB.open(PDF_CACHE_NAME, 1)
+
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
+    }
+
+    request.onsuccess = () => {
+      const db = request.result
+      const tx = db.transaction('pdfs', 'readwrite')
+      tx.objectStore('pdfs').put({
+        blob,
+        cachedAt: Date.now()
+      }, key)
+      tx.oncomplete = () => db.close()
+      tx.onerror = () => db.close()
+    }
+  } catch {
+    // Cache is an optimization only; never block download if it fails.
+  }
+}
+
 function getReference(product) {
   const id = String(product?.id || '').replace(/-/g, '').slice(0, 8).toUpperCase()
   return id ? 'EC-' + id : 'EC-CATALOG'
@@ -43,67 +121,86 @@ function getOptimizedSource(src, width = 360, quality = 58) {
   return optimizerUrl
 }
 
-async function fetchDataUrl(src) {
+function getDirectSupabaseTransform(src, width = 320, height = 190, quality = 48) {
   if (!src) return null
 
   try {
-    const optimizedSrc = getOptimizedSource(src)
-    const response = await fetch(optimizedSrc, {
-      mode: 'same-origin',
-      cache: 'force-cache'
-    })
+    const url = new URL(src)
 
-    if (!response.ok) throw new Error('Optimized image request failed')
-    return await blobToDataUrl(await response.blob())
-  } catch (error) {
-    // Fallback for assets the optimizer cannot process.
-    try {
-      const response = await fetch(src, { mode: 'cors', cache: 'force-cache' })
-      if (!response.ok) throw new Error('Image request failed')
-      return await blobToDataUrl(await response.blob())
-    } catch (fallbackError) {
-      return null
+    // Public Supabase Storage:
+    // /storage/v1/object/public/{bucket}/{path}
+    const marker = '/storage/v1/object/public/'
+    const markerIndex = url.pathname.indexOf(marker)
+
+    if (url.hostname.endsWith('.supabase.co') && markerIndex !== -1) {
+      const objectPath = url.pathname.slice(markerIndex + marker.length)
+      return (
+        url.origin +
+        '/storage/v1/render/image/public/' +
+        objectPath +
+        '?width=' + width +
+        '&height=' + height +
+        '&resize=contain' +
+        '&quality=' + quality +
+        '&format=origin'
+      )
     }
+  } catch {
+    // Fall through to the Next optimizer.
   }
+
+  return null
 }
 
-async function prepareImage(src, outputWidth = 360, outputHeight = 210) {
-  const dataUrl = await fetchDataUrl(src)
-  if (!dataUrl) return null
-
-  return await new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas')
-        canvas.width = outputWidth
-        canvas.height = outputHeight
-        const context = canvas.getContext('2d')
-        if (!context) return resolve(null)
-
-        context.fillStyle = '#f0ede7'
-        context.fillRect(0, 0, outputWidth, outputHeight)
-
-        const scale = Math.max(outputWidth / img.naturalWidth, outputHeight / img.naturalHeight)
-        const width = img.naturalWidth * scale
-        const height = img.naturalHeight * scale
-        const x = (outputWidth - width) / 2
-        const y = (outputHeight - height) / 2
-        context.drawImage(img, x, y, width, height)
-
-        resolve(canvas.toDataURL('image/jpeg', 0.64))
-      } catch (error) {
-        resolve(null)
-      }
-    }
-    img.onerror = () => resolve(null)
-    img.src = dataUrl
+async function blobToDataUrl(blob) {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
   })
+}
+
+async function fetchDataUrl(src) {
+  if (!src) return null
+
+  const candidates = [
+    getDirectSupabaseTransform(src),
+    '/_next/image?url=' + encodeURIComponent(src) + '&w=320&q=48',
+    src
+  ].filter(Boolean)
+
+  for (const candidate of candidates) {
+    try {
+      const response = await fetch(candidate, {
+        mode: candidate.startsWith('/') ? 'same-origin' : 'cors',
+        cache: 'force-cache'
+      })
+
+      if (!response.ok) continue
+
+      const blob = await response.blob()
+      if (!blob.type.startsWith('image/')) continue
+
+      return await blobToDataUrl(blob)
+    } catch {
+      // Try the next source.
+    }
+  }
+
+  return null
+}
+
+async function prepareImage(src) {
+  // The server/CDN already resized this to PDF-appropriate dimensions.
+  // Avoid a second browser canvas resize/re-encode.
+  return await fetchDataUrl(src)
 }
 
 async function getLogo() {
   return await fetchDataUrl('/Empire Car Ac  Logo Design.jpg')
 }
+
 
 function drawHeader(doc, logo, pageNumber, totalPages, productCount) {
   doc.setFillColor(255, 255, 255)
@@ -237,11 +334,73 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
     if (busy || activeProducts.length === 0) return
 
     setBusy(true)
-    setProgress('Optimizing product images...')
+
+    const fingerprint = getCatalogueFingerprint(activeProducts)
+    const cacheKey = 'catalogue-' + fingerprint
 
     try {
+      setProgress('Checking catalogue cache...')
+
+      const cached = await readPdfCache(cacheKey)
+
+      if (cached?.blob) {
+        const cachedUrl = URL.createObjectURL(cached.blob)
+        const anchor = document.createElement('a')
+        anchor.href = cachedUrl
+        anchor.download = 'Empire-Car-AC-Product-Catalogue-' + new Date().toISOString().slice(0, 10) + '.pdf'
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+        URL.revokeObjectURL(cachedUrl)
+
+        setProgress('Catalogue downloaded from cache')
+        setTimeout(() => {
+          setBusy(false)
+          setProgress('')
+        }, 1200)
+        return
+      }
+
+      setProgress('Optimizing catalogue images...')
+
+      const imageCache = new Array(activeProducts.length)
+      let nextImageIndex = 0
+
+      const worker = async () => {
+        while (true) {
+          const index = nextImageIndex
+          nextImageIndex += 1
+
+          if (index >= activeProducts.length) return
+
+          const product = activeProducts[index]
+          const primary =
+            product?.images?.find((image) => image?.is_primary)?.image_url ||
+            product?.images?.[0]?.image_url ||
+            null
+
+          imageCache[index] = await prepareImage(primary)
+
+          if ((index + 1) % 10 === 0 || index === activeProducts.length - 1) {
+            setProgress('Optimizing images ' + (index + 1) + '/' + activeProducts.length)
+          }
+        }
+      }
+
+      // Enough parallelism to saturate CDN/network without making the browser unusable.
+      const workerCount = Math.min(14, activeProducts.length)
+      await Promise.all(Array.from({ length: workerCount }, () => worker()))
+
+      setProgress('Building PDF...')
+
       const totalPages = Math.ceil(activeProducts.length / (GRID_COLUMNS * GRID_ROWS))
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true })
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      })
+
       const logo = await getLogo()
 
       for (let page = 0; page < totalPages; page += 1) {
@@ -249,38 +408,11 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
 
         drawHeader(doc, logo, page + 1, totalPages, activeProducts.length)
 
+        const pageStart = page * GRID_COLUMNS * GRID_ROWS
         const pageProducts = activeProducts.slice(
-          page * GRID_COLUMNS * GRID_ROWS,
-          (page + 1) * GRID_COLUMNS * GRID_ROWS
+          pageStart,
+          pageStart + GRID_COLUMNS * GRID_ROWS
         )
-
-        const preparedImages = new Array(pageProducts.length)
-        let nextIndex = 0
-
-        const worker = async () => {
-          while (true) {
-            const index = nextIndex
-            nextIndex += 1
-            if (index >= pageProducts.length) return
-
-            const product = pageProducts[index]
-
-            setProgress(
-              'Optimizing page ' + (page + 1) + '/' + totalPages +
-              ' - image ' + (index + 1) + '/' + pageProducts.length
-            )
-
-            const primary =
-              product?.images?.find((image) => image?.is_primary)?.image_url ||
-              product?.images?.[0]?.image_url ||
-              null
-
-            preparedImages[index] = await prepareImage(primary, 360, 210)
-          }
-        }
-
-        const workerCount = Math.min(6, pageProducts.length)
-        await Promise.all(Array.from({ length: workerCount }, () => worker()))
 
         pageProducts.forEach((product, index) => {
           const row = Math.floor(index / GRID_COLUMNS)
@@ -288,14 +420,32 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
           const x = MARGIN_X + column * (CELL_WIDTH + CELL_GAP)
           const y = GRID_TOP + row * (CELL_HEIGHT + CELL_GAP)
 
-          drawProductCell(doc, product, preparedImages[index], x, y)
+          drawProductCell(
+            doc,
+            product,
+            imageCache[pageStart + index],
+            x,
+            y
+          )
         })
 
         drawFooter(doc)
       }
 
-      const date = new Date().toISOString().slice(0, 10)
-      doc.save('Empire-Car-AC-Product-Catalogue-' + date + '.pdf')
+      const pdfBlob = doc.output('blob')
+
+      // Persist the completed catalogue so an unchanged catalogue downloads immediately next time.
+      await writePdfCache(cacheKey, pdfBlob)
+
+      const pdfUrl = URL.createObjectURL(pdfBlob)
+      const anchor = document.createElement('a')
+      anchor.href = pdfUrl
+      anchor.download = 'Empire-Car-AC-Product-Catalogue-' + new Date().toISOString().slice(0, 10) + '.pdf'
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(pdfUrl)
+
       setProgress('Catalogue downloaded')
     } catch (error) {
       console.error('Catalogue PDF generation failed:', error)
@@ -304,7 +454,7 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
       setTimeout(() => {
         setBusy(false)
         setProgress('')
-      }, 1800)
+      }, 1400)
     }
   }
 
