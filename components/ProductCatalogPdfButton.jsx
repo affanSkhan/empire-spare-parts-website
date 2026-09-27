@@ -22,8 +22,6 @@ function truncate(text = '', max = 70) {
 
 
 
-const PDF_CACHE_NAME = 'empire-catalogue-pdf-v2-hq'
-
 function getCatalogueFingerprint(products) {
   return products
     .map((product) => [
