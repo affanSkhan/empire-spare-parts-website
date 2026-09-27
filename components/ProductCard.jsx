@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -84,12 +85,12 @@ export default function ProductCard({ product }) {
       <Link href={buildProductUrl()} className="block focus:outline-none">
         <div className="relative aspect-[4/3] overflow-hidden bg-[#ece9e2]">
           {imageSrc ? (
-            <img
+            <Image
               src={imageSrc}
               alt={product.name}
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 h-full w-full object-contain p-7 transition-transform duration-700 group-hover:scale-105"
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-contain p-7 transition-transform duration-700 group-hover:scale-105"
               onError={() => {
                 if (imageIndex < fallbackImages.length) setImageIndex((value) => value + 1)
               }}
