@@ -4,10 +4,10 @@ import { useRouter } from 'next/router'
 import { supabase } from '@/lib/supabaseClient'
 
 const fallbackImages = [
-  '/showcase/wiring-socket.jpg',
+  '/showcase/blower-resistance.jpg',
   '/showcase/blower-resistance.jpg',
   '/showcase/radiator-fan.jpg',
-  '/showcase/motor-gear.jpg'
+  '/showcase/radiator-fan.jpg'
 ]
 
 export default function ProductCard({ product }) {
