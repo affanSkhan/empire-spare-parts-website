@@ -541,7 +541,7 @@ function drawProductCell(doc, product, imageData, x, y, settings) {
 
   if (fitment) {
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(5.05
+    doc.setFontSize(5.05)
     doc.setTextColor(94, 99, 104)
     doc.text(fitment, x + CELL_WIDTH / 2, cursorY, { align: 'center' })
     cursorY += 2.7
