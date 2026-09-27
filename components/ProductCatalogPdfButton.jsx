@@ -103,15 +103,6 @@ function getReference(product) {
   return id ? 'EC-' + id : 'EC-CATALOG'
 }
 
-async function blobToDataUrl(blob) {
-  return await new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(blob)
-  })
-}
-
 function getOptimizedSource(src, width = 360, quality = 58) {
   if (!src) return null
 
