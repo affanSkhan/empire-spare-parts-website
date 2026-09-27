@@ -12,14 +12,28 @@ const nextConfig = {
   }),
   images: {
     unoptimized: isCapacitorBuild, // Only unoptimize for Capacitor
-    // Allow images from Supabase Storage
+    // Keep image optimization enabled for the web build.
+    // Supabase is the CMS source for catalogue imagery; Unsplash is used only for the homepage hero.
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.empirecarac.in',
+        pathname: '/showcase/**',
+      },
     ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [360, 640, 768, 1024, 1280, 1440, 1920],
+    imageSizes: [32, 48, 64, 96, 128, 256, 384, 512, 768],
   },
 }
 
