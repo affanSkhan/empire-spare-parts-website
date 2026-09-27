@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 
 const fallbackImages = [
-  '/showcase/wiring-socket.jpg',
+  '/showcase/blower-resistance.jpg',
   '/showcase/blower-resistance.jpg',
   '/showcase/radiator-fan.jpg',
-  '/showcase/motor-gear.jpg'
+  '/showcase/radiator-fan.jpg'
 ]
 
 export default function ProductShowcase() {
@@ -147,10 +147,10 @@ export default function ProductShowcase() {
         ) : (
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ['Wiring sockets', 'Electrical', '/showcase/wiring-socket.jpg'],
+              ['Wiring sockets', 'Electrical', '/showcase/blower-resistance.jpg'],
               ['Blower resistors', 'Cabin A/C', '/showcase/blower-resistance.jpg'],
               ['Radiator fan resistors', 'Cooling', '/showcase/radiator-fan.jpg'],
-              ['Mirror motor gears', 'Body electronics', '/showcase/motor-gear.jpg']
+              ['Mirror motor gears', 'Body electronics', '/showcase/radiator-fan.jpg']
             ].map(([title, category, image]) => (
               <Link
                 key={title}
