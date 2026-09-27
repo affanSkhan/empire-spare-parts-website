@@ -236,31 +236,29 @@ export default function Home() {
           <div className="site-shell grid lg:grid-cols-[.82fr_1.18fr]">
             <div className="hidden lg:block">
               <div className="sticky top-[82px] flex h-[calc(100vh-82px)] items-center py-10">
-                <div
-                  className="relative h-[78vh] w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#151b22]"
-                  style={{ backgroundImage: 'linear-gradient(rgba(11,15,19,.10), rgba(11,15,19,.25)), url(' + stories[activeStory].image + ')', backgroundSize: 'cover', backgroundPosition: 'center' }}
-                >
-                  {stories.map((story, index) => (
-                    <img
-                      key={story.number}
-                      src={story.image}
-                      alt=""
-                      loading={index === 0 ? 'eager' : 'lazy'}
-                      className={
-                        'absolute inset-0 z-0 h-full w-full object-cover transition-all duration-[1200ms] ease-out ' +
-                        (activeStory === index ? 'scale-100 opacity-100' : 'scale-105 opacity-0')
-                      }
-                      onError={(event) => {
-                        event.currentTarget.src = index === 1
+                <div className="relative h-[78vh] w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#151b22]">
+                  <img
+                    key={stories[activeStory].number}
+                    src={stories[activeStory].image}
+                    alt=""
+                    loading="eager"
+                    decoding="async"
+                    className="absolute inset-0 z-10 h-full w-full object-contain bg-[#f4f2ee] transition-all duration-700"
+                    onError={(event) => {
+                      const node = event.currentTarget
+                      if (node.dataset.fallback !== 'used') {
+                        node.dataset.fallback = 'used'
+                        node.src = activeStory === 1
                           ? '/showcase/blower-resistance.jpg'
-                          : index === 2
+                          : activeStory === 2
                             ? '/showcase/radiator-fan.jpg'
-                            : 'https://images.unsplash.com/photo-1559727126-706acf5a8e07?auto=format&fit=crop&w=2200&q=90'
-                      }}
-                    />
-                  ))}
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,91,31,.12),transparent_40%)]" />
-                  <div className="absolute inset-x-6 bottom-6 flex items-center justify-between rounded-2xl border border-white/10 bg-black/35 p-4 backdrop-blur-xl">
+                            : '/showcase/wiring-socket.jpg'
+                      }
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 z-20 bg-[radial-gradient(circle_at_center,rgba(255,91,31,.08),transparent_42%)]" />
+                  <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-black/35 via-transparent to-black/5" />
+                  <div className="absolute inset-x-6 bottom-6 z-30 flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl">
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-[.16em] text-white/35">Scroll story</p>
                       <p className="mt-1 text-sm font-black text-white">{stories[activeStory].label}</p>
@@ -275,7 +273,24 @@ export default function Home() {
               {stories.map((story, index) => (
                 <article key={story.number} data-story-index={index} className="flex min-h-[78vh] flex-col justify-center border-b border-white/10 py-20 last:border-0 lg:min-h-screen lg:px-12">
                   <div className="image-reveal relative mb-8 aspect-[4/3] overflow-hidden rounded-[30px] bg-[#151b22] lg:hidden">
-                    <img src={story.image} alt="" className="h-full w-full object-cover" loading={index === 0 ? 'eager' : 'lazy'} />
+                    <img
+                      src={story.image}
+                      alt={story.title}
+                      loading="eager"
+                      decoding="async"
+                      className="h-full w-full object-contain bg-[#f4f2ee]"
+                      onError={(event) => {
+                        const node = event.currentTarget
+                        if (node.dataset.fallback !== 'used') {
+                          node.dataset.fallback = 'used'
+                          node.src = index === 1
+                            ? '/showcase/blower-resistance.jpg'
+                            : index === 2
+                              ? '/showcase/radiator-fan.jpg'
+                              : '/showcase/wiring-socket.jpg'
+                        }
+                      }}
+                    />
                   </div>
                   <span className="eyebrow !text-[#ff8e68] reveal">{story.number} / {story.label}</span>
                   <h2 className="reveal reveal-delay-1 mt-5 max-w-3xl text-5xl font-black leading-[.92] tracking-[-.055em] sm:text-6xl lg:text-7xl">{story.title}</h2>
