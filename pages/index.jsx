@@ -155,16 +155,26 @@ export default function Home() {
                 </div>
 
                 <div className="reveal reveal-delay-3 in-view mt-6 flex flex-col gap-2.5 sm:mt-9 sm:flex-row sm:gap-3">
-                  <a href="https://wa.me/917741077666?text=Hello%20Empire%20Car%20A%2FC%2C%20I%20need%20help%20finding%20a%20car%20A%2FC%20part." target="_blank" rel="noopener noreferrer" className="btn-whatsapp magnetic">
-                    WhatsApp the part
-                  </a>
-                  <Link href="/products" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/18 bg-white/[.08] px-6 text-sm font-black text-white backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:bg-white/[.13]">
-                    Browse catalogue
+                  <Link
+                    href="/products"
+                    className="btn-primary magnetic"
+                  >
+                    Order parts <span aria-hidden="true">↗</span>
                   </Link>
+                  <a
+                    href="https://wa.me/917741077666?text=Hello%20Empire%20Car%20A%2FC%2C%20I%20want%20to%20enquire%20about%20a%20car%20A%2FC%20part."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-whatsapp"
+                  >
+                    Inquire on WhatsApp
+                  </a>
                 </div>
 
-                <div className="mt-9 flex flex-wrap gap-x-8 gap-y-3 text-xs font-bold text-white/48">
-                  <span>Search</span><span>Fitment</span><span>WhatsApp</span><span>Amravati</span>
+                <div className="mt-7 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[.14em] text-white/48 sm:mt-9">
+                  <span className="rounded-full border border-white/10 bg-white/[.06] px-3 py-2">Car A/C parts</span>
+                  <span className="rounded-full border border-white/10 bg-white/[.06] px-3 py-2">Vehicle fitment</span>
+                  <span className="rounded-full border border-white/10 bg-white/[.06] px-3 py-2">Amravati</span>
                 </div>
               </div>
 
