@@ -89,8 +89,9 @@ export default function Home() {
               alt=""
               fill
               priority
+              fetchPriority="high"
               sizes="100vw"
-              quality={78}
+              quality={74}
               className="hero-float object-cover object-center opacity-[.68]"
             />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,8,11,.96)_0%,rgba(5,8,11,.75)_40%,rgba(5,8,11,.22)_100%)]" />
