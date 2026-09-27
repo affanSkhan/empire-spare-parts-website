@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
+import { supabase } from '@/lib/supabaseClient'
 
 const whatsappNumber = '917741077666'
 const phoneNumber = '+917741077666'
