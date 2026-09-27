@@ -208,6 +208,18 @@ export default function CartPage() {
     return primaryImage?.image_url || product.images?.[0]?.image_url || null
   }
 
+  const whatsappOrderLink = (() => {
+    const lines = cartItems.map((item) => '• ' + item.product.name + ' × ' + item.quantity)
+    const message = [
+      'Hello Empire Car A/C, I would like to place an order enquiry.',
+      '',
+      ...lines,
+      '',
+      'Please share availability and the final quotation.'
+    ].join('\n')
+    return 'https://wa.me/917741077666?text=' + encodeURIComponent(message)
+  })()
+
   return (
     <CustomerLayout>
       <Head>
@@ -323,12 +335,21 @@ export default function CartPage() {
                 </p>
               </div>
 
+              <a
+                href={whatsappOrderLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-whatsapp flex w-full py-3 text-lg"
+              >
+                Order on WhatsApp
+              </a>
+
               <button
                 onClick={placeOrder}
                 disabled={placing}
-                className="w-full btn-primary py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary mt-3 w-full py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {placing ? 'Placing Order...' : 'Place Order'}
+                {placing ? 'Placing Order...' : 'Place order in account'}
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-3">
