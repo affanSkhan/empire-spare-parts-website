@@ -1,13 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { jsPDF } from 'jspdf'
 
 const PAGE = { width: 210, height: 297 }
 const MARGIN_X = 8
 const GRID_COLUMNS = 3
-const GRID_ROWS = 5
-const CELL_GAP = 0.5
+const GRID_ROWS = 4
+const CELL_GAP = 1.1
 const GRID_TOP = 35
 const GRID_BOTTOM = 21
 const GRID_WIDTH = PAGE.width - MARGIN_X * 2
@@ -85,7 +85,8 @@ function getCatalogueFingerprint(products) {
     .join('||')
 }
 
-const PDF_CACHE_NAME = 'empire-catalogue-pdf-v3-custom-hq'
+const PDF_SETTINGS_STORAGE_KEY = 'empire-catalogue-pdf-settings-v1'
+const PDF_CACHE_NAME = 'empire-catalogue-pdf-v4-custom-hq'
 const PDF_CACHE_VERSION = 3
 const PDF_STORE = 'pdfs'
 const IMAGE_STORE = 'images'
@@ -332,13 +333,32 @@ async function getLogo() {
 }
 
 function drawWatermark(doc, text) {
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(22)
-  doc.setTextColor(232, 232, 232)
+  let usedOpacity = false
 
-  for (let y = -45; y < PAGE.height + 70; y += 55) {
-    for (let x = -55; x < PAGE.width + 70; x += 92) {
+  try {
+    if (typeof doc.setGState === 'function' && typeof doc.GState === 'function') {
+      doc.setGState(new doc.GState({ opacity: 0.12 }))
+      usedOpacity = true
+    }
+  } catch {
+    // Older PDF viewers/renderers may not support the graphics state.
+  }
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(21)
+  doc.setTextColor(82, 87, 93)
+
+  for (let y = -45; y < PAGE.height + 70; y += 58) {
+    for (let x = -60; x < PAGE.width + 75; x += 96) {
       doc.text(text, x, y, { angle: 32 })
+    }
+  }
+
+  if (usedOpacity) {
+    try {
+      doc.setGState(new doc.GState({ opacity: 1 }))
+    } catch {
+      // No-op: the watermark was already rendered.
     }
   }
 }
@@ -346,8 +366,6 @@ function drawWatermark(doc, text) {
 function drawHeader(doc, logo, pageNumber, totalPages, productCount, categoryName, dateText) {
   doc.setFillColor(255, 255, 255)
   doc.rect(0, 0, PAGE.width, PAGE.height, 'F')
-
-  drawWatermark(doc, 'EMPIRE CAR A/C')
 
   if (logo) {
     doc.addImage(logo, getImageFormat(logo), MARGIN_X, 5.5, 12.5, 12.5)
@@ -409,8 +427,41 @@ function drawFooter(doc, dateText) {
   )
 }
 
+function drawImageContain(doc, imageData, x, y, width, height) {
+  if (!imageData) return
+
+  try {
+    const properties = doc.getImageProperties(imageData)
+    const sourceWidth = Number(properties?.width || 1)
+    const sourceHeight = Number(properties?.height || 1)
+    const scale = Math.min(width / sourceWidth, height / sourceHeight)
+    const drawWidth = sourceWidth * scale
+    const drawHeight = sourceHeight * scale
+    const drawX = x + (width - drawWidth) / 2
+    const drawY = y + (height - drawHeight) / 2
+
+    doc.addImage(
+      imageData,
+      getImageFormat(imageData),
+      drawX,
+      drawY,
+      drawWidth,
+      drawHeight
+    )
+  } catch {
+    doc.addImage(
+      imageData,
+      getImageFormat(imageData),
+      x,
+      y,
+      width,
+      height
+    )
+  }
+}
+
 function drawProductCell(doc, product, imageData, x, y, settings) {
-  const imageHeight = 30.5
+  const imageHeight = 34
   const textTop = y + imageHeight
   const textHeight = CELL_HEIGHT - imageHeight
 
@@ -419,14 +470,14 @@ function drawProductCell(doc, product, imageData, x, y, settings) {
   doc.rect(x, y, CELL_WIDTH, CELL_HEIGHT)
 
   if (imageData) {
-    doc.addImage(
-      imageData,
-      getImageFormat(imageData),
-      x + 0.35,
-      y + 0.35,
-      CELL_WIDTH - 0.7,
-      imageHeight - 0.7
-    )
+    const imageBoxX = x + 0.35
+    const imageBoxY = y + 0.35
+    const imageBoxWidth = CELL_WIDTH - 0.7
+    const imageBoxHeight = imageHeight - 0.7
+
+    doc.setFillColor(247, 245, 241)
+    doc.rect(imageBoxX, imageBoxY, imageBoxWidth, imageBoxHeight, 'F')
+    drawImageContain(doc, imageData, imageBoxX, imageBoxY, imageBoxWidth, imageBoxHeight)
   } else {
     doc.setFillColor(244, 241, 235)
     doc.rect(x + 0.35, y + 0.35, CELL_WIDTH - 0.7, imageHeight - 0.7, 'F')
@@ -475,7 +526,7 @@ function drawProductCell(doc, product, imageData, x, y, settings) {
 
   doc.setTextColor(32, 34, 36)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(6.05)
+  doc.setFontSize(6.2)
 
   const nameLines = doc.splitTextToSize(
     truncate(product?.name || 'Unnamed product', 72),
@@ -486,17 +537,17 @@ function drawProductCell(doc, product, imageData, x, y, settings) {
     doc.text(line, x + CELL_WIDTH / 2, textTop + 3.7 + index * 2.7, { align: 'center' })
   })
 
-  let cursorY = textTop + 9.3
+  let cursorY = textTop + 9.6
 
   if (fitment) {
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(4.95)
+    doc.setFontSize(5.05
     doc.setTextColor(94, 99, 104)
     doc.text(fitment, x + CELL_WIDTH / 2, cursorY, { align: 'center' })
-    cursorY += 2.5
+    cursorY += 2.7
   }
 
-  doc.setFontSize(4.75)
+  doc.setFontSize(5.0)
   doc.setTextColor(55, 58, 62)
   doc.setFont('helvetica', 'bold')
   doc.text(code, x + 1.4, cursorY)
@@ -506,7 +557,7 @@ function drawProductCell(doc, product, imageData, x, y, settings) {
     doc.text('Qty ' + quantity, x + CELL_WIDTH - 1.4, cursorY, { align: 'right' })
   }
 
-  cursorY += 2.8
+  cursorY += 3.0
   doc.setDrawColor(205, 201, 194)
   doc.setLineWidth(0.2)
   doc.line(x + 0.7, cursorY - 1.2, x + CELL_WIDTH - 0.7, cursorY - 1.2)
@@ -520,25 +571,25 @@ function drawProductCell(doc, product, imageData, x, y, settings) {
 
     if (settings.showMrp) {
       doc.setTextColor(91, 94, 98)
-      doc.text('MRP', left, cursorY + 2.8)
+      doc.text('MRP', left, cursorY + 2.7)
       doc.setTextColor(30, 33, 36)
-      doc.text('Rs. ' + formatCurrency(basePrice), right, cursorY + 2.8, { align: 'right' })
+      doc.text('Rs. ' + formatCurrency(basePrice), right, cursorY + 2.7, { align: 'right' })
       cursorY += 2.8
     }
 
     if (settings.showSellingPrice) {
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(255, 91, 31)
-      doc.text('Selling', left, cursorY + 2.8)
-      doc.text('Rs. ' + formatCurrency(sellingPrice), right, cursorY + 2.8, { align: 'right' })
+      doc.text('Selling', left, cursorY + 2.7)
+      doc.text('Rs. ' + formatCurrency(sellingPrice), right, cursorY + 2.7, { align: 'right' })
       cursorY += 2.8
       doc.setFont('helvetica', 'normal')
     }
 
     if (settings.showDiscount && discountPercent > 0) {
       doc.setTextColor(26, 130, 74)
-      doc.text('Discount', left, cursorY + 2.8)
-      doc.text(discountPercent + '%  |  -Rs. ' + formatCurrency(basePrice - sellingBeforeGst), right, cursorY + 2.8, { align: 'right' })
+      doc.text('Discount', left, cursorY + 2.7)
+      doc.text(discountPercent + '%  |  -Rs. ' + formatCurrency(basePrice - sellingBeforeGst), right, cursorY + 2.7, { align: 'right' })
       cursorY += 2.8
     }
 
@@ -549,23 +600,23 @@ function drawProductCell(doc, product, imageData, x, y, settings) {
           ? 'GST ' + gstRate + '% incl.'
           : 'GST ' + gstRate + '% excl.',
         left,
-        cursorY + 2.8
+        cursorY + 2.7
       )
       if (gstRate > 0) {
-        doc.text('Rs. ' + formatCurrency(gstAmount), right, cursorY + 2.8, { align: 'right' })
+        doc.text('Rs. ' + formatCurrency(gstAmount), right, cursorY + 2.7, { align: 'right' })
       }
       cursorY += 2.8
     }
 
     if (settings.customQuantity && quantity > 1) {
       doc.setTextColor(72, 76, 80)
-      doc.text('Line total', left, cursorY + 2.8)
-      doc.text('Rs. ' + formatCurrency(sellingPrice * quantity), right, cursorY + 2.8, { align: 'right' })
+      doc.text('Line total', left, cursorY + 2.7)
+      doc.text('Rs. ' + formatCurrency(sellingPrice * quantity), right, cursorY + 2.7, { align: 'right' })
     }
   } else {
     doc.setTextColor(116, 120, 125)
     doc.setFont('helvetica', 'italic')
-    doc.setFontSize(4.9)
+    doc.setFontSize(5.0)
     doc.text('Price available on request', x + CELL_WIDTH / 2, cursorY + 3.0, { align: 'center' })
   }
 }
@@ -690,6 +741,37 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
   const [previewBlob, setPreviewBlob] = useState(null)
   const [previewFilename, setPreviewFilename] = useState('')
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [settingsHydrated, setSettingsHydrated] = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(PDF_SETTINGS_STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...(parsed && typeof parsed === 'object' ? parsed : {})
+        })
+      }
+    } catch {
+      // Keep defaults if browser storage is unavailable/corrupt.
+    } finally {
+      setSettingsHydrated(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!settingsHydrated) return
+
+    try {
+      window.localStorage.setItem(
+        PDF_SETTINGS_STORAGE_KEY,
+        JSON.stringify(settings)
+      )
+    } catch {
+      // Persistence is optional; PDF generation must still work.
+    }
+  }, [settings, settingsHydrated])
 
   const activeProducts = useMemo(
     () => products.filter((product) => product?.is_active),
@@ -723,11 +805,32 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
   function openCustomizer() {
     if (activeProducts.length === 0) return
 
-    setSettings({
-      ...DEFAULT_SETTINGS,
-      categoryId: 'all',
-      categoryName: 'All Categories'
+    setSettings((currentSettings) => {
+      if (currentSettings.categoryId === 'all') {
+        return {
+          ...currentSettings,
+          categoryName: 'All Categories'
+        }
+      }
+
+      const matchingCategory = categories.find(
+        (category) => String(category.id) === String(currentSettings.categoryId)
+      )
+
+      if (!matchingCategory) {
+        return {
+          ...currentSettings,
+          categoryId: 'all',
+          categoryName: 'All Categories'
+        }
+      }
+
+      return {
+        ...currentSettings,
+        categoryName: matchingCategory.name
+      }
     })
+
     setPreviewBlob(null)
     setPreviewFilename('')
     if (previewUrl) {
@@ -956,7 +1059,6 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
                           onChange={(event) => {
                             const id = event.target.value
                             const category = categories.find((item) => String(item.id) === String(id))
-                            handleSettingChange('categoryId', id)
                             setSettings((currentSettings) => ({
                               ...currentSettings,
                               categoryId: id,
@@ -1171,7 +1273,7 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
                         <div>
                           <p className="text-sm font-black text-slate-900">Watermark enabled</p>
                           <p className="mt-1 text-[10px] leading-4 text-slate-600">
-                            A repeated Empire Car A/C watermark is applied across every page to discourage reuse and make the document visibly branded.
+                            A subtle transparent Empire Car A/C watermark is repeated across every page to discourage reuse while keeping the product details readable.
                           </p>
                         </div>
                       </div>
@@ -1190,7 +1292,7 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-semibold text-white/40">High quality image source</p>
-                        <p className="mt-0.5 text-[10px] font-black text-[#ff8e68]">960 × 640 · quality 88</p>
+                        <p className="mt-0.5 text-[10px] font-black text-[#ff8e68]">960 × 640 · quality 88 · 3 × 4 layout</p>
                       </div>
                     </div>
 
