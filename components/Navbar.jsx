@@ -109,19 +109,6 @@ export default function Navbar() {
         ? 'bg-transparent'
         : 'border-b border-black/[.06] bg-[#f4f2ee]/92 shadow-[0_12px_40px_rgba(11,15,19,.05)] backdrop-blur-2xl')}>
         
-        <div className="hidden h-[34px] border-b border-white/10 bg-[#0b0f13] px-4 sm:hidden">
-          <div className="mx-auto flex h-full max-w-[1480px] items-center justify-between text-[9px] font-black uppercase tracking-[.12em] text-white/65">
-            <a href="tel:+917741077666" className="inline-flex items-center gap-1.5 text-white/85">
-              <PhoneIcon className="h-3.5 w-3.5 text-[#ff8e68]" />
-              +91 77410 77666
-            </a>
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[#25D366]">
-              <WhatsAppIcon className="h-4 w-4" />
-              WhatsApp
-            </a>
-          </div>
-        </div>
-
         <div className="sm:hidden h-[34px] border-b border-white/10 bg-[#0b0f13] px-4">
           <div className="mx-auto flex h-full max-w-[1480px] items-center justify-between text-[9px] font-black uppercase tracking-[.12em] text-white/65">
             <a href="tel:+917741077666" className="inline-flex items-center gap-1.5 text-white/85">
