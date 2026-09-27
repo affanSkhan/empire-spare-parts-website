@@ -14,7 +14,7 @@ export default function Footer() {
         <div className="grid gap-10 lg:grid-cols-[1.4fr_.7fr_1fr]">
           <div>
             <Link href="/" aria-label="Empire Car A/C home" className="inline-flex items-center gap-3">
-              <div className="h-10 w-10 overflow-hidden rounded-2xl bg-[#0b0f13] ring-1 ring-white/15">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl bg-[#0b0f13] ring-1 ring-white/15">
                 <Image src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C" fill sizes="40px" className="object-cover" />
               </div>
               <div>
