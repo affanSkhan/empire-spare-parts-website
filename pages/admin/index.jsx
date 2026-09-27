@@ -1,16 +1,52 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import AdminLayout from '@/components/AdminLayout'
+import ProductCatalogPdfButton from '@/components/ProductCatalogPdfButton'
 import { supabase } from '@/lib/supabaseClient'
 import useAdminAuth from '@/hooks/useAdminAuth'
 
-/**
- * Admin Dashboard - Main Overview Page
- * Protected route - requires authentication
- */
+const statusStyles = {
+  pending: 'bg-amber-50 text-amber-800 border-amber-200',
+  quotation_sent: 'bg-blue-50 text-blue-800 border-blue-200',
+  payment_received: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  completed: 'bg-slate-900 text-white border-slate-900',
+  cancelled: 'bg-red-50 text-red-700 border-red-200',
+}
+
+function StatusBadge({ status }) {
+  const label = String(status || 'pending').replace(/_/g, ' ')
+  const style = statusStyles[status] || 'bg-slate-50 text-slate-700 border-slate-200'
+  return <span className={'inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] ' + style}>{label}</span>
+}
+
+function formatDate(dateString) {
+  if (!dateString) return 'No date'
+  return new Date(dateString).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function StatCard({ label, value, detail, href, accent = 'orange' }) {
+  const body = (
+    <div className="group rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_12px_35px_rgba(11,15,19,0.04)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_45px_rgba(11,15,19,0.08)]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
+          <p className="mt-3 text-3xl font-black tracking-[-0.05em] text-slate-950">{value}</p>
+          {detail && <p className="mt-2 text-xs font-semibold text-slate-500">{detail}</p>}
+        </div>
+        <span className={'mt-1 h-2.5 w-2.5 rounded-full ring-4 ' + (accent === 'green' ? 'bg-emerald-500 ring-emerald-50' : accent === 'red' ? 'bg-red-500 ring-red-50' : 'bg-[#ff5b1f] ring-orange-50')} />
+      </div>
+      {href && <div className="mt-5 text-xs font-black text-slate-600 transition group-hover:text-[#dc4310]">Open section <span aria-hidden="true">→</span></div>}
+    </div>
+  )
+  return href ? <Link href={href}>{body}</Link> : body
+}
+
 export default function AdminDashboard() {
   const { user, loading: authLoading } = useAdminAuth()
+  const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalCategories: 0,
@@ -22,63 +58,70 @@ export default function AdminDashboard() {
     monthlyRevenue: 0,
   })
   const [recentOrders, setRecentOrders] = useState([])
+  const [catalogProducts, setCatalogProducts] = useState([])
 
   useEffect(() => {
-    if (user) {
-      fetchStats()
-    }
+    if (user) fetchStats()
   }, [user])
 
   async function fetchStats() {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
-    
-    // Fetch dashboard statistics
-    const [
-      productsRes, 
-      categoriesRes, 
-      activeRes, 
-      invoicesRes,
-      ordersRes,
-      pendingOrdersRes,
-      customersRes,
-      revenueRes,
-      recentOrdersRes
-    ] = await Promise.all([
-      supabase.from('products').select('id', { count: 'exact', head: true }),
-      supabase.from('categories').select('id', { count: 'exact', head: true }),
-      supabase.from('products').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('invoices').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
-      supabase.from('orders').select('id', { count: 'exact', head: true }),
-      supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('customers').select('id', { count: 'exact', head: true }),
-      supabase.from('invoices').select('total').gte('created_at', startOfMonth),
-      supabase.from('orders').select('*, customer:customers(name)').order('created_at', { ascending: false }).limit(5)
-    ])
+    try {
+      setLoading(true)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
-    const monthlyRevenue = revenueRes.data?.reduce((sum, inv) => sum + (inv.total || 0), 0) || 0
+      const [
+        productsRes,
+        categoriesRes,
+        activeRes,
+        invoicesRes,
+        ordersRes,
+        pendingOrdersRes,
+        customersRes,
+        revenueRes,
+        recentOrdersRes,
+        catalogRes,
+      ] = await Promise.all([
+        supabase.from('products').select('id', { count: 'exact', head: true }),
+        supabase.from('categories').select('id', { count: 'exact', head: true }),
+        supabase.from('products').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('invoices').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
+        supabase.from('orders').select('id', { count: 'exact', head: true }),
+        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('customers').select('id', { count: 'exact', head: true }),
+        supabase.from('invoices').select('total').gte('created_at', startOfMonth),
+        supabase.from('orders').select('*, customer:customers(name)').order('created_at', { ascending: false }).limit(5),
+        supabase.from('products').select('*, category:categories(name), images:product_images(image_url, is_primary)').eq('is_active', true).order('created_at', { ascending: false }),
+      ])
 
-    setStats({
-      totalProducts: productsRes.count || 0,
-      totalCategories: categoriesRes.count || 0,
-      activeProducts: activeRes.count || 0,
-      recentInvoices: invoicesRes.count || 0,
-      totalOrders: ordersRes.count || 0,
-      pendingOrders: pendingOrdersRes.count || 0,
-      totalCustomers: customersRes.count || 0,
-      monthlyRevenue: monthlyRevenue,
-    })
-    
-    setRecentOrders(recentOrdersRes.data || [])
+      const monthlyRevenue = revenueRes.data?.reduce((sum, invoice) => sum + Number(invoice.total || 0), 0) || 0
+
+      setStats({
+        totalProducts: productsRes.count || 0,
+        totalCategories: categoriesRes.count || 0,
+        activeProducts: activeRes.count || 0,
+        recentInvoices: invoicesRes.count || 0,
+        totalOrders: ordersRes.count || 0,
+        pendingOrders: pendingOrdersRes.count || 0,
+        totalCustomers: customersRes.count || 0,
+        monthlyRevenue,
+      })
+      setRecentOrders(recentOrdersRes.data || [])
+      setCatalogProducts(catalogRes.data || [])
+    } catch (error) {
+      console.error('Dashboard data error:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[#ff5b1f]" />
+            <p className="mt-4 text-sm font-semibold text-slate-500">Loading Empire operations...</p>
           </div>
         </div>
       </AdminLayout>
@@ -92,290 +135,106 @@ export default function AdminDashboard() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-700 bg-clip-text text-transparent">Dashboard</h1>
-
-        {/* Stats Cards - Row 1 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
-          <Link href="/admin/orders" className="card bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Total Orders</p>
-                <p className="text-2xl sm:text-3xl font-bold">{stats.totalOrders}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/admin/orders?status=pending" className="card bg-gradient-to-br from-red-500 via-pink-500 to-rose-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Pending Orders</p>
-                <p className="text-2xl sm:text-3xl font-bold">{stats.pendingOrders}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </Link>
-
-          <div className="card bg-[#0b0f13] text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Total Customers</p>
-                <p className="text-2xl sm:text-3xl font-bold">{stats.totalCustomers}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
+      <div className="mx-auto max-w-[1480px]">
+        <header className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff5b1f]">Operations overview</p>
+            <h1 className="mt-2 text-3xl font-black tracking-[-0.05em] text-slate-950 sm:text-4xl">Empire Car A/C</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Keep orders moving, keep the catalogue current, and export the latest product sheet whenever you need it.</p>
           </div>
-
-          <div className="card bg-gradient-to-br from-green-600 via-emerald-600 to-teal-700 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Monthly Revenue</p>
-                <p className="text-2xl sm:text-3xl font-bold">₹{stats.monthlyRevenue.toLocaleString()}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link href="/admin/orders" className="btn-secondary px-5">View orders</Link>
+            <Link href="/admin/products/new" className="btn-primary px-5">Add product</Link>
           </div>
-        </div>
+        </header>
 
-        {/* Stats Cards - Row 2 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Link href="/admin/products" className="card bg-slate-800 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Total orders" value={stats.totalOrders} detail={stats.pendingOrders + ' waiting for action'} href="/admin/orders" />
+          <StatCard label="Active catalogue" value={stats.activeProducts} detail={stats.totalProducts + ' products in database'} href="/admin/products" />
+          <StatCard label="Customers" value={stats.totalCustomers} detail={stats.totalCategories + ' categories'} href="/admin/categories" />
+          <StatCard label="Revenue this month" value={'Rs. ' + stats.monthlyRevenue.toLocaleString('en-IN')} detail={stats.recentInvoices + ' invoices in last 30 days'} href="/admin/invoices" accent="green" />
+        </section>
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-[1.35fr_.65fr]">
+          <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_12px_35px_rgba(11,15,19,0.04)] sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Total Products</p>
-                <p className="text-2xl sm:text-3xl font-bold">{stats.totalProducts}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Order queue</p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-slate-950">Recent customer activity</h2>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
+              <Link href="/admin/orders" className="text-xs font-black text-[#dc4310] hover:underline">View all orders →</Link>
             </div>
-          </Link>
 
-          <div className="card bg-[#ff5b1f] text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Active Products</p>
-                <p className="text-2xl sm:text-3xl font-bold">{stats.activeProducts}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <Link href="/admin/categories" className="card bg-slate-800 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Categories</p>
-                <p className="text-2xl sm:text-3xl font-bold">{stats.totalCategories}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/admin/invoices" className="card bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 text-white shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-xs sm:text-sm mb-1">Recent Invoices (30d)</p>
-                <p className="text-2xl sm:text-3xl font-bold">{stats.recentInvoices}</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-3 rounded-lg">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="card mb-6 sm:mb-8">
-          <h2 className="text-lg sm:text-xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Link href="/admin/orders" className="flex items-center p-3 sm:p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl hover:from-orange-100 hover:to-amber-100 transition-all border border-orange-200 hover:shadow-lg transform hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-orange-600 to-amber-600 p-2 sm:p-3 rounded-lg mr-3 sm:mr-4 flex-shrink-0 shadow-md">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-sm sm:text-base">View Orders</p>
-                <p className="text-xs sm:text-sm text-gray-600 truncate">Manage customer orders</p>
-              </div>
-            </Link>
-
-            <Link href="/admin/products/new" className="flex items-center p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl hover:from-blue-100 hover:to-cyan-100 transition-all border border-blue-200 hover:shadow-lg transform hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 p-2 sm:p-3 rounded-lg mr-3 sm:mr-4 flex-shrink-0 shadow-md">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-sm sm:text-base">Add Product</p>
-                <p className="text-xs sm:text-sm text-gray-600 truncate">Create new product</p>
-              </div>
-            </Link>
-
-            <Link href="/admin/invoices/new" className="flex items-center p-3 sm:p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl hover:from-green-100 hover:to-emerald-100 transition-all border border-green-200 hover:shadow-lg transform hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-2 sm:p-3 rounded-lg mr-3 sm:mr-4 flex-shrink-0 shadow-md">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-sm sm:text-base">New Invoice</p>
-                <p className="text-xs sm:text-sm text-gray-600 truncate">Generate invoice</p>
-              </div>
-            </Link>
-
-            <Link href="/admin/categories" className="flex items-center p-3 sm:p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl hover:from-purple-100 hover:to-pink-100 transition-all border border-purple-200 hover:shadow-lg transform hover:-translate-y-1">
-              <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-2 sm:p-3 rounded-lg mr-3 sm:mr-4 flex-shrink-0 shadow-md">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-sm sm:text-base">Categories</p>
-                <p className="text-xs sm:text-sm text-gray-600 truncate">Manage categories</p>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        {recentOrders.length > 0 && (
-          <div className="card mb-6 sm:mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Recent Orders</h2>
-              <Link href="/admin/orders" className="text-sm text-blue-600 hover:text-blue-700 font-semibold">
-                View All →
-              </Link>
-            </div>
-            
-            {/* Mobile Card View */}
-            <div className="md:hidden space-y-3">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="text-sm font-semibold text-gray-900">#{order.order_number}</div>
-                      <div className="text-xs text-gray-600">{order.customer?.name || 'N/A'}</div>
-                    </div>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      order.status === 'invoiced' ? 'bg-purple-100 text-purple-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-bold text-gray-900">
-                      ₹{(order.admin_total || 0).toLocaleString()}
-                    </div>
-                    <Link href={`/admin/orders/${order.id}`} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                      View →
-                    </Link>
-                  </div>
+            <div className="mt-6">
+              {recentOrders.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
+                  <p className="text-sm font-bold text-slate-700">No orders yet</p>
+                  <p className="mt-1 text-xs text-slate-500">New customer requests will appear here.</p>
                 </div>
-              ))}
-            </div>
-
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order #</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
+              ) : (
+                <div className="divide-y divide-slate-100">
                   {recentOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">#{order.order_number}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{order.customer?.name || 'N/A'}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                          order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          order.status === 'invoiced' ? 'bg-purple-100 text-purple-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right font-semibold text-gray-900">
-                        ₹{(order.admin_total || 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <Link href={`/admin/orders/${order.id}`} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                          View
-                        </Link>
-                      </td>
-                    </tr>
+                    <Link key={order.id} href={'/admin/orders/' + order.id} className="group flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-black text-slate-950">#{order.order_number}</span>
+                          <StatusBadge status={order.status} />
+                        </div>
+                        <p className="mt-1 truncate text-sm font-semibold text-slate-600">{order.customer?.name || 'Customer'}</p>
+                        <p className="mt-1 text-xs text-slate-400">{formatDate(order.created_at)}</p>
+                      </div>
+                      <div className="flex items-center justify-between gap-4 sm:justify-end">
+                        <span className="text-sm font-black text-slate-950">Rs. {Number(order.admin_total || 0).toLocaleString('en-IN')}</span>
+                        <span className="text-lg text-slate-300 transition group-hover:text-[#dc4310]" aria-hidden="true">→</span>
+                      </div>
+                    </Link>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Welcome Message */}
-        <div className="card bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 border-l-4 border-purple-600 shadow-xl">
-          <h3 className="text-base sm:text-lg font-semibold mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Welcome to the Admin Dashboard</h3>
-          <p className="text-sm sm:text-base text-gray-700 mb-2">
-            Complete management system for Empire Spare Parts with full e-commerce functionality.
-          </p>
-          <div className="flex flex-wrap gap-2 mt-3">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ✓ Products & Categories
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ✓ Customer Orders
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ✓ Invoice Generation
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ✓ Public Invoice Sharing
-            </span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              ✓ WhatsApp Integration
-            </span>
+          <div className="rounded-[28px] bg-slate-950 p-6 text-white shadow-[0_20px_55px_rgba(11,15,19,0.12)]">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/40">Catalogue</p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.04em]">Customer-ready PDF</h2>
+              </div>
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/60">3 × 5 grid</span>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-white/55">Export the active catalogue in a print-friendly A4 layout with product photos, fitment, references and MRP.</p>
+            <div className="mt-7 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-3xl font-black tracking-[-0.04em]">{catalogProducts.length}</p>
+              <p className="mt-1 text-xs font-semibold text-white/45">active products ready to publish</p>
+            </div>
+            <div className="mt-5">
+              <ProductCatalogPdfButton products={catalogProducts} className="w-full border-white/15 bg-white text-slate-950 hover:border-white" />
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link href="/admin/products" className="rounded-[24px] border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Catalogue</p>
+            <h3 className="mt-2 text-lg font-black tracking-[-0.03em]">Manage products</h3>
+            <p className="mt-2 text-sm text-slate-500">Edit pricing, fitment, stock and images.</p>
+          </Link>
+          <Link href="/admin/orders" className="rounded-[24px] border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Sales</p>
+            <h3 className="mt-2 text-lg font-black tracking-[-0.03em]">Work the queue</h3>
+            <p className="mt-2 text-sm text-slate-500">{stats.pendingOrders} new order{stats.pendingOrders === 1 ? '' : 's'} waiting for review.</p>
+          </Link>
+          <Link href="/admin/invoices" className="rounded-[24px] border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Finance</p>
+            <h3 className="mt-2 text-lg font-black tracking-[-0.03em]">Invoices</h3>
+            <p className="mt-2 text-sm text-slate-500">{stats.recentInvoices} invoices created in the last 30 days.</p>
+          </Link>
+          <Link href="/admin/notifications" className="rounded-[24px] border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Alerts</p>
+            <h3 className="mt-2 text-lg font-black tracking-[-0.03em]">Notifications</h3>
+            <p className="mt-2 text-sm text-slate-500">Keep track of order and system alerts.</p>
+          </Link>
+        </section>
       </div>
     </AdminLayout>
   )
