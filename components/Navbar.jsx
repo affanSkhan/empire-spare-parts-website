@@ -182,21 +182,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      <div className="pointer-events-none fixed bottom-[max(10px,env(safe-area-inset-bottom))] inset-x-2 z-[70] sm:hidden">
-        <div className="pointer-events-auto grid grid-cols-[.82fr_1.3fr_.88fr] gap-1.5 rounded-[22px] border border-black/10 bg-white/95 p-1.5 shadow-[0_16px_44px_rgba(11,15,19,.20)] backdrop-blur-xl">
-          <a href="tel:+917741077666" className="flex min-h-14 items-center justify-center gap-1.5 rounded-[17px] bg-[#0b0f13] px-2 text-[10px] font-black text-white">
-            <PhoneIcon className="h-4 w-4" />
-            Call
-          </a>
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-center gap-1.5 rounded-[17px] bg-[#25D366] px-2 text-[11px] font-black text-white shadow-[0_8px_22px_rgba(37,211,102,.28)]">
-            <WhatsAppIcon className="h-4 w-4" />
-            {orderRoute ? 'Order on WhatsApp' : 'WhatsApp'}
-          </a>
-          <Link href={isLoggedIn && router.pathname.startsWith('/customer') ? '/customer/cart' : '/products'} className="flex min-h-14 items-center justify-center rounded-[17px] bg-white px-2 text-[10px] font-black text-[#0b0f13] ring-1 ring-black/10">
-            {isLoggedIn && router.pathname.startsWith('/customer') ? 'Cart' : 'Find a Part'}
-          </Link>
-        </div>
-      </div>
+
 
       {isHome && !scrolled && (
         <div className="pointer-events-none fixed bottom-24 right-4 z-40 hidden lg:block">
