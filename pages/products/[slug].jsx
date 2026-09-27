@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
+import Image from 'next/image'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
@@ -29,6 +30,7 @@ export default function ProductDetailsPage() {
   const [quantity, setQuantity] = useState(1)
   const [addingToCart, setAddingToCart] = useState(false)
   const [cartMessage, setCartMessage] = useState('')
+  const [selectedImageError, setSelectedImageError] = useState(false)
 
   useEffect(() => {
     if (slug) fetchProduct()
@@ -63,6 +65,7 @@ export default function ProductDetailsPage() {
       setProduct(productData)
       setImages(imageList)
       setSelectedImage(imageList.find((image) => image.is_primary)?.image_url || imageList[0]?.image_url || fallbackImages[0])
+      setSelectedImageError(false)
 
       if (productData.category_id) {
         const { data: relatedData } = await supabase
@@ -241,15 +244,15 @@ export default function ProductDetailsPage() {
           <div className="site-shell grid gap-10 py-8 sm:py-12 lg:grid-cols-[1.04fr_.96fr] lg:gap-14 lg:py-14">
             <div>
               <div className="relative aspect-square overflow-hidden rounded-[36px] bg-[#ece9e2] ring-1 ring-black/10">
-                <img
-                  src={selectedImage || fallbackImages[0]}
+                <Image
+                  src={selectedImageError ? fallbackImages[0] : (selectedImage || fallbackImages[0])}
                   alt={product.name}
-                  className="absolute inset-0 h-full w-full object-contain p-10 sm:p-14"
-                  onError={(event) => {
-                    const fallback = fallbackImages[0]
-                    if (event.currentTarget.src !== window.location.origin + fallback) {
-                      event.currentTarget.src = fallback
-                    }
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 52vw"
+                  className="object-contain p-10 sm:p-14"
+                  onError={() => {
+                    if (!selectedImageError) setSelectedImageError(true)
                   }}
                 />
 
@@ -269,20 +272,21 @@ export default function ProductDetailsPage() {
                     <button
                       type="button"
                       key={image.id || image.image_url}
-                      onClick={() => setSelectedImage(image.image_url)}
+                      onClick={() => {
+                        setSelectedImage(image.image_url)
+                        setSelectedImageError(false)
+                      }}
                       className={
                         'relative aspect-square overflow-hidden rounded-2xl border bg-white ' +
                         (selectedImage === image.image_url ? 'border-[#ff5b1f] ring-2 ring-[#ff5b1f]/20' : 'border-black/10')
                       }
                     >
-                      <img
+                      <Image
                         src={image.image_url || fallbackImages[index % fallbackImages.length]}
                         alt={product.name + ' view ' + (index + 1)}
-                        className="h-full w-full object-contain p-2"
-                        loading="lazy"
-                        onError={(event) => {
-                          event.currentTarget.src = fallbackImages[(index + 1) % fallbackImages.length]
-                        }}
+                        fill
+                        sizes="96px"
+                        className="object-contain p-2"
                       />
                     </button>
                   ))}
