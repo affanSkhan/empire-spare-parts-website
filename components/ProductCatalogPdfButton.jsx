@@ -22,7 +22,7 @@ function truncate(text = '', max = 70) {
 
 
 
-const PDF_CACHE_NAME = 'empire-catalogue-pdf-v1'
+const PDF_CACHE_NAME = 'empire-catalogue-pdf-v2-hq'
 
 function getCatalogueFingerprint(products) {
   return products
@@ -34,6 +34,67 @@ function getCatalogueFingerprint(products) {
       product?.images?.find((image) => image?.is_primary)?.image_url || product?.images?.[0]?.image_url || ''
     ].join('|'))
     .join('||')
+}
+
+async function readCachedImage(key) {
+  if (typeof indexedDB === 'undefined') return null
+
+  return await new Promise((resolve) => {
+    try {
+      const request = indexedDB.open(PDF_CACHE_NAME, 1)
+
+      request.onupgradeneeded = () => {
+        const db = request.result
+        if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
+      if (!db.objectStoreNames.contains('images')) db.createObjectStore('images')
+        if (!db.objectStoreNames.contains('images')) db.createObjectStore('images')
+      }
+
+      request.onsuccess = () => {
+        const db = request.result
+        const tx = db.transaction('images', 'readonly')
+        const getRequest = tx.objectStore('images').get(key)
+
+        getRequest.onsuccess = () => {
+          resolve(getRequest.result || null)
+          db.close()
+        }
+
+        getRequest.onerror = () => {
+          resolve(null)
+          db.close()
+        }
+      }
+
+      request.onerror = () => resolve(null)
+    } catch {
+      resolve(null)
+    }
+  })
+}
+
+async function writeCachedImage(key, dataUrl) {
+  if (typeof indexedDB === 'undefined' || !dataUrl) return
+
+  try {
+    const request = indexedDB.open(PDF_CACHE_NAME, 1)
+
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains('pdfs')) db.createObjectStore('pdfs')
+      if (!db.objectStoreNames.contains('images')) db.createObjectStore('images')
+    }
+
+    request.onsuccess = () => {
+      const db = request.result
+      const tx = db.transaction('images', 'readwrite')
+      tx.objectStore('images').put(dataUrl, key)
+      tx.oncomplete = () => db.close()
+      tx.onerror = () => db.close()
+    }
+  } catch {
+    // Image cache is an optimization only.
+  }
 }
 
 async function readPdfCache(key) {
@@ -112,7 +173,7 @@ function getOptimizedSource(src, width = 360, quality = 58) {
   return optimizerUrl
 }
 
-function getDirectSupabaseTransform(src, width = 320, height = 190, quality = 48) {
+function getDirectSupabaseTransform(src, width = 640, height = 420, quality = 80) {
   if (!src) return null
 
   try {
@@ -155,9 +216,13 @@ async function blobToDataUrl(blob) {
 async function fetchDataUrl(src) {
   if (!src) return null
 
+  const cacheKey = 'img-hq-640x420-q80-' + src
+  const cached = await readCachedImage(cacheKey)
+  if (cached) return cached
+
   const candidates = [
-    getDirectSupabaseTransform(src),
-    '/_next/image?url=' + encodeURIComponent(src) + '&w=320&q=48',
+    getDirectSupabaseTransform(src, 640, 420, 80),
+    '/_next/image?url=' + encodeURIComponent(src) + '&w=640&q=80',
     src
   ].filter(Boolean)
 
@@ -173,7 +238,9 @@ async function fetchDataUrl(src) {
       const blob = await response.blob()
       if (!blob.type.startsWith('image/')) continue
 
-      return await blobToDataUrl(blob)
+      const dataUrl = await blobToDataUrl(blob)
+      await writeCachedImage(cacheKey, dataUrl)
+      return dataUrl
     } catch {
       // Try the next source.
     }
