@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductShowcase from '@/components/ProductShowcase'
 
-const heroImage = 'https://images.unsplash.com/photo-1559727126-706acf5a8e07?auto=format&fit=crop&w=2400&q=90'
+const heroImage = 'https://images.unsplash.com/photo-1559727126-706acf5a8e07?fit=crop&w=1600&q=74'
 
 const stories = [
   {
@@ -22,14 +22,14 @@ const stories = [
     label: 'VERIFY',
     title: 'Then check the fit.',
     body: 'Open the component page, review the available vehicle and brand context, then use direct contact when the exact match needs confirmation.',
-    image: 'https://www.empirecarac.in/showcase/blower-resistance.jpg'
+    image: '/showcase/blower-resistance.jpg'
   },
   {
     number: '03',
     label: 'CONNECT',
     title: 'Finish with a real conversation.',
     body: 'For stock, pricing or a difficult identification, send the vehicle details or a photo of the old component directly to Empire.',
-    image: 'https://www.empirecarac.in/showcase/radiator-fan.jpg'
+    image: '/showcase/radiator-fan.jpg'
   }
 ]
 
