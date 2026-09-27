@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import Logo from './Logo'
 
 export default function Footer() {
@@ -14,7 +15,7 @@ export default function Footer() {
           <div>
             <Link href="/" aria-label="Empire Car A/C home" className="inline-flex items-center gap-3">
               <div className="h-10 w-10 overflow-hidden rounded-2xl bg-[#0b0f13] ring-1 ring-white/15">
-                <img src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C" className="h-full w-full object-cover" />
+                <Image src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C" fill sizes="40px" className="object-cover" />
               </div>
               <div>
                 <div className="whitespace-nowrap text-[17px] font-black leading-none tracking-[-.035em] !text-white">
