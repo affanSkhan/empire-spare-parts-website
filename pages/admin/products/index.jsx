@@ -4,6 +4,7 @@ import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
 import Toast from '@/components/Toast';
 import { supabase } from '@/lib/supabaseClient';
+import ProductCatalogPdfButton from '@/components/ProductCatalogPdfButton';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -24,7 +25,8 @@ export default function ProductsPage() {
         .from('products')
         .select(`
           *,
-          category:categories(name)
+          category:categories(name),
+          images:product_images(image_url, is_primary)
         `)
         .order('created_at', { ascending: false });
 
@@ -136,35 +138,43 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Products</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">Manage your product inventory</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff5b1f]">Catalogue control</p>
+            <h1 className="mt-2 text-3xl sm:text-4xl font-black tracking-[-0.04em] text-[#0b0f13]">Products</h1>
+            <p className="mt-1 text-sm sm:text-base text-[#68727f]">Manage the live catalogue and export a customer-ready product sheet.</p>
           </div>
-          <Link
-            href="/admin/products/new"
-            className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
-          >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <ProductCatalogPdfButton products={products} className="w-full sm:w-auto" />
+            <Link
+              href="/admin/products/new"
+              className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add Product
           </Link>
+          </div>
         </div>
 
         {/* Search Bar */}
-        <div className="card p-3 sm:p-4">
+        <div className="rounded-[24px] border border-slate-200 bg-white p-3 sm:p-4 shadow-[0_12px_35px_rgba(11,15,19,0.04)]">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Find a product</span>
+            <span className="text-xs font-semibold text-slate-400">{filteredProducts.length} shown</span>
+          </div>
           <div className="relative">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name, category, brand, or car model..."
-              className="w-full pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-10 text-sm sm:text-base text-slate-900 outline-none transition focus:border-[#ff5b1f]/50 focus:bg-white focus:ring-4 focus:ring-[#ff5b1f]/10"
             />
             <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
