@@ -247,9 +247,16 @@ export default function Home() {
                       alt=""
                       loading={index === 0 ? 'eager' : 'lazy'}
                       className={
-                        'absolute inset-0 h-full w-full object-cover transition-all duration-[1200ms] ease-out ' +
+                        'absolute inset-0 z-0 h-full w-full object-cover transition-all duration-[1200ms] ease-out ' +
                         (activeStory === index ? 'scale-100 opacity-100' : 'scale-105 opacity-0')
                       }
+                      onError={(event) => {
+                        event.currentTarget.src = index === 1
+                          ? '/showcase/blower-resistance.jpg'
+                          : index === 2
+                            ? '/showcase/radiator-fan.jpg'
+                            : 'https://images.unsplash.com/photo-1559727126-706acf5a8e07?auto=format&fit=crop&w=2200&q=90'
+                      }}
                     />
                   ))}
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,91,31,.12),transparent_40%)]" />
