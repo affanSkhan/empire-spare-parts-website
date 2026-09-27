@@ -86,7 +86,7 @@ export default function Navbar() {
       href={href}
       className={
         'group relative py-2 text-[13px] font-black tracking-[-0.01em] transition-colors duration-300 ' +
-        (lightHero ? 'text-white/72 hover:text-white' : 'text-[#596472] hover:text-[#0b0f13]')
+        (lightHero ? 'text-white hover:text-white' : 'text-[#596472] hover:text-[#0b0f13]')
       }
     >
       {label}
@@ -110,6 +110,7 @@ export default function Navbar() {
         }
       >
         <div className="site-shell">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[#ff5b1f]" />
           <div className="flex h-[82px] items-center justify-between gap-6">
             <Link href="/" aria-label="Empire Car A/C home" className="shrink-0">
               <Logo size="small" light={lightHero} />
@@ -127,7 +128,7 @@ export default function Navbar() {
                   href="/customer/cart"
                   className={
                     'rounded-full px-4 py-2.5 text-[13px] font-black transition-colors ' +
-                    (lightHero ? 'text-white/75 hover:bg-white/10 hover:text-white' : 'text-[#596472] hover:bg-black/[.04] hover:text-[#0b0f13]')
+                    (lightHero ? 'text-white hover:bg-white/10 hover:text-white' : 'text-[#596472] hover:bg-black/[.04] hover:text-[#0b0f13]')
                   }
                 >
                   Cart {cartCount > 0 ? '(' + cartCount + ')' : ''}
