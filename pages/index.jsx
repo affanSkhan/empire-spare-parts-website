@@ -77,6 +77,9 @@ export default function Home() {
         <meta property="og:description" content="Search car A/C parts by part, brand or vehicle and contact Empire in Amravati." />
         <meta property="og:url" content="https://www.empirecarac.in/" />
         <link rel="canonical" href="https://www.empirecarac.in/" />
+        <link rel="preload" as="image" href="/showcase/wiring-socket.jpg" />
+        <link rel="preload" as="image" href="/showcase/blower-resistance.jpg" />
+        <link rel="preload" as="image" href="/showcase/radiator-fan.jpg" />
       </Head>
 
       <Navbar />
@@ -246,19 +249,19 @@ export default function Home() {
           <div className="site-shell grid lg:grid-cols-[.82fr_1.18fr]">
             <div className="hidden lg:block">
               <div className="sticky top-[82px] flex h-[calc(100vh-82px)] items-center py-10">
-                <div className="relative h-[78vh] w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#151b22]">
-                  <Image
-                    key={stories[activeStory].number}
-                    src={stories[activeStory].image}
-                    alt={stories[activeStory].title}
-                    fill
-                    priority
-                    sizes="(max-width: 1280px) 55vw, 650px"
-                    className="z-10 object-contain bg-[#f4f2ee] transition-all duration-700"
-                  />
-                  <div className="pointer-events-none absolute inset-0 z-20 bg-[radial-gradient(circle_at_center,rgba(255,91,31,.08),transparent_42%)]" />
-                  <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-black/35 via-transparent to-black/5" />
-                  <div className="absolute inset-x-6 bottom-6 z-30 flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl">
+                <div
+                  className="relative h-[78vh] w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#f4f2ee]"
+                  style={{
+                    backgroundImage: 'url("' + stories[activeStory].image + '")',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'contain'
+                  }}
+                  aria-label={stories[activeStory].title}
+                >
+                  <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,rgba(255,91,31,.07),transparent_42%)]" />
+                  <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/28 via-transparent to-black/3" />
+                  <div className="absolute inset-x-6 bottom-6 z-20 flex items-center justify-between rounded-2xl border border-white/10 bg-black/40 p-4 backdrop-blur-xl">
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-[.16em] text-white/35">Scroll story</p>
                       <p className="mt-1 text-sm font-black text-white">{stories[activeStory].label}</p>
