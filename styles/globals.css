@@ -315,3 +315,7 @@
 @media (max-width: 639px) {
   body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 }
+
+@media (max-width: 639px) {
+  .floating-contact a:nth-child(2) { flex: 1.22; }
+}
