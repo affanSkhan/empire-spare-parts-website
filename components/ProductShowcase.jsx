@@ -145,9 +145,26 @@ export default function ProductShowcase() {
             )}
           </div>
         ) : (
-          <div className="mt-10 rounded-[34px] border border-black/10 bg-white p-10 text-center">
-            <p className="text-sm text-[#68727f]">No active catalogue items are currently available.</p>
-            <Link href="/products" className="mt-5 inline-flex text-sm font-black text-[#dc4310] hover:underline">Open catalogue →</Link>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ['Wiring sockets', 'Electrical', '/showcase/wiring-socket.jpg'],
+              ['Blower resistors', 'Cabin A/C', '/showcase/blower-resistance.jpg'],
+              ['Radiator fan resistors', 'Cooling', '/showcase/radiator-fan.jpg'],
+              ['Mirror motor gears', 'Body electronics', '/showcase/motor-gear.jpg']
+            ].map(([title, category, image]) => (
+              <Link
+                key={title}
+                href="/products"
+                className="group relative min-h-[260px] overflow-hidden rounded-[30px] bg-[#0b0f13] text-white shadow-[0_18px_50px_rgba(11,15,19,.08)]"
+              >
+                <img src={image} alt={title} className="absolute inset-0 h-full w-full object-contain p-8 transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f13] via-transparent to-transparent" />
+                <div className="absolute bottom-5 left-5 right-5">
+                  <p className="text-[9px] font-black uppercase tracking-[.17em] text-[#ff8e68]">{category}</p>
+                  <h3 className="mt-2 text-xl font-black tracking-[-.03em]">{title}</h3>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </div>
