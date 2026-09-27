@@ -85,7 +85,7 @@ export default function Home() {
       <Navbar />
 
       <main className="overflow-hidden bg-[#f4f2ee]">
-        <section className="noise relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[#0b0f13] text-white">
+        <section className="noise relative isolate flex min-h-[calc(100svh-72px)] items-end overflow-hidden bg-[#0b0f13] sm:min-h-[100svh] text-white">
           <div className="absolute inset-0">
             <Image
               src={heroImage}
@@ -101,7 +101,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_32%,rgba(255,91,31,.22),transparent_28%)]" />
           </div>
 
-          <div className="site-shell relative z-10 pb-16 pt-40 sm:pb-20 lg:pb-24">
+          <div className="site-shell relative z-10 pb-20 pt-28 sm:pb-20 sm:pt-40 lg:pb-24">
             <div className="grid items-end gap-12 lg:grid-cols-[1.08fr_.92fr]">
               <div className="max-w-4xl">
                 <div className="reveal in-view flex items-center gap-3 text-[10px] font-black uppercase tracking-[.22em] text-white/58">
@@ -119,10 +119,47 @@ export default function Home() {
                   A more deliberate way to find automotive A/C parts, inspect the component, and get direct help when fitment needs a human answer.
                 </p>
 
-                <div className="reveal reveal-delay-3 in-view mt-9 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/products" className="btn-primary magnetic">Explore parts <span aria-hidden="true">↗</span></Link>
-                  <Link href="/contact" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/18 bg-white/[.08] px-6 text-sm font-black text-white backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:bg-white/[.13]">
-                    Visit the shop
+                <div className="lg:hidden reveal reveal-delay-2 in-view mt-6 rounded-[24px] border border-white/10 bg-white/[.07] p-3 backdrop-blur-xl">
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      runSearch(search)
+                    }}
+                  >
+                    <div className="flex items-center gap-2 rounded-[18px] bg-white p-1.5">
+                      <input
+                        type="search"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Search a part or vehicle…"
+                        className="min-w-0 flex-1 bg-transparent px-3 py-3 text-[15px] font-semibold text-[#0b0f13] outline-none placeholder:text-[#98a0aa]"
+                        aria-label="Search car A/C parts on mobile"
+                      />
+                      <button type="submit" className="min-h-11 rounded-[15px] bg-[#0b0f13] px-4 text-xs font-black text-white">
+                        Search
+                      </button>
+                    </div>
+                  </form>
+                  <div className="mt-2.5 flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+                    {['Compressor', 'Condenser', 'Blower', 'Swift'].map((term) => (
+                      <button
+                        key={term}
+                        type="button"
+                        onClick={() => runSearch(term)}
+                        className="shrink-0 rounded-full border border-white/10 bg-white/[.06] px-3 py-2 text-[10px] font-black text-white/75"
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="reveal reveal-delay-3 in-view mt-6 flex flex-col gap-2.5 sm:mt-9 sm:flex-row sm:gap-3">
+                  <a href="https://wa.me/917741077666?text=Hello%20Empire%20Car%20A%2FC%2C%20I%20need%20help%20finding%20a%20car%20A%2FC%20part." target="_blank" rel="noopener noreferrer" className="btn-whatsapp magnetic">
+                    WhatsApp the part
+                  </a>
+                  <Link href="/products" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/18 bg-white/[.08] px-6 text-sm font-black text-white backdrop-blur-md transition-all duration-500 hover:-translate-y-1 hover:bg-white/[.13]">
+                    Browse catalogue
                   </Link>
                 </div>
 
@@ -131,7 +168,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="reveal reveal-delay-2 in-view lg:pb-3">
+              <div className="hidden lg:block reveal reveal-delay-2 in-view lg:pb-3">
                 <div className="glass rounded-[34px] p-4">
                   <div className="rounded-[26px] bg-white p-5 text-[#0b0f13] sm:p-6">
                     <div className="flex items-start justify-between gap-4">
@@ -182,8 +219,8 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-14 border-t border-white/10 pt-6">
-              <div className="grid gap-5 sm:grid-cols-3">
+            <div className="mt-9 border-t border-white/10 pt-5 sm:mt-14 sm:pt-6">
+              <div className="grid gap-3 sm:grid-cols-3 sm:gap-5">
                 {[
                   ['Focused catalogue', 'A/C parts and automotive components'],
                   ['Vehicle-first', 'Model details before assumptions'],
