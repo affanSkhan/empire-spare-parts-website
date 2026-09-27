@@ -84,23 +84,46 @@ function MotionRuntime() {
   }, [])
 
   useEffect(() => {
-    const setupMotion = () => {
-      const elements = Array.from(document.querySelectorAll('.reveal, .clip-reveal, .image-reveal'))
-      if (!elements.length) return
+    let intersectionObserver
+    let mutationObserver
+    let magneticCleanup = []
 
-      const observer = new IntersectionObserver((entries) => {
+    const setupMotion = () => {
+      const seen = new WeakSet()
+
+      intersectionObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('in-view')
-            observer.unobserve(entry.target)
+            intersectionObserver.unobserve(entry.target)
           }
         })
       }, { threshold: 0.14, rootMargin: '0px 0px -9% 0px' })
 
-      elements.forEach((element) => observer.observe(element))
+      const registerElements = (root = document) => {
+        const elements = Array.from(root.querySelectorAll('.reveal, .clip-reveal, .image-reveal'))
+        elements.forEach((element) => {
+          if (seen.has(element)) return
+          seen.add(element)
+          intersectionObserver.observe(element)
+        })
+      }
 
-      const magneticElements = Array.from(document.querySelectorAll('.magnetic'))
-      const cleanup = magneticElements.map((element) => {
+      registerElements()
+
+      mutationObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) {
+              registerElements(node)
+            }
+          })
+        })
+      })
+
+      mutationObserver.observe(document.body, { childList: true, subtree: true })
+
+      magneticCleanup = Array.from(document.querySelectorAll('.magnetic')).map((element) => {
         const move = (event) => {
           if (window.innerWidth < 900) return
           const rect = element.getBoundingClientRect()
@@ -108,9 +131,7 @@ function MotionRuntime() {
           const y = (event.clientY - (rect.top + rect.height / 2)) * 0.08
           element.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)'
         }
-        const leave = () => {
-          element.style.transform = 'translate3d(0,0,0)'
-        }
+        const leave = () => { element.style.transform = 'translate3d(0,0,0)' }
         element.addEventListener('mousemove', move)
         element.addEventListener('mouseleave', leave)
         return () => {
@@ -118,15 +139,15 @@ function MotionRuntime() {
           element.removeEventListener('mouseleave', leave)
         }
       })
-
-      return () => {
-        observer.disconnect()
-        cleanup.forEach((fn) => fn())
-      }
     }
 
     const timer = window.setTimeout(setupMotion, 40)
-    return () => window.clearTimeout(timer)
+    return () => {
+      window.clearTimeout(timer)
+      intersectionObserver?.disconnect()
+      mutationObserver?.disconnect()
+      magneticCleanup.forEach((fn) => fn())
+    }
   }, [router.asPath])
 
   return (
