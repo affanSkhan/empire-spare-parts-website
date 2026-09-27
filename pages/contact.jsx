@@ -82,16 +82,14 @@ export default function ContactPage() {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href={`tel:${businessInfo.phoneNumber}`} className="btn-primary">
-                  Call +91 77410 77666
+                <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="btn-whatsapp">
+                  WhatsApp enquiry
                 </a>
                 <a
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={`tel:${businessInfo.phoneNumber}`}
                   className="btn-secondary border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.11]"
                 >
-                  WhatsApp enquiry
+                  Call the shop
                 </a>
               </div>
             </div>
