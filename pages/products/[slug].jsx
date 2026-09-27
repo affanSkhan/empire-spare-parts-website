@@ -343,8 +343,8 @@ export default function ProductDetailsPage() {
                   </div>
 
                   <div className="flex w-full flex-col gap-2 sm:w-[245px]">
-                    <button type="button" onClick={handleAddToCart} disabled={addingToCart} className="btn-primary w-full disabled:opacity-50">{addingToCart ? 'Adding…' : 'Add to cart'}</button>
-                    <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="btn-secondary w-full">Ask on WhatsApp ↗</a>
+                    <button type="button" onClick={handleAddToCart} disabled={addingToCart} className="btn-secondary w-full disabled:opacity-50">{addingToCart ? 'Adding…' : 'Add to cart'}</button>
+                    <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="btn-whatsapp w-full">Order / enquire on WhatsApp ↗</a>
                   </div>
                 </div>
               </div>
