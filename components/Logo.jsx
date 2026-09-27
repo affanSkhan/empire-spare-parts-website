@@ -8,8 +8,8 @@ export default function Logo({ className = "", size = "normal", showText = true,
   }
 
   const currentSize = sizes[size] || sizes.normal
-  const titleColor = light ? 'text-white' : 'text-[#0b0f13]'
-  const taglineColor = light ? 'text-white/60' : 'text-[#68727f]'
+  const titleColor = light ? '!text-white' : 'text-[#0b0f13]'
+  const taglineColor = light ? '!text-white/60' : 'text-[#68727f]'
 
   return (
     <div className={`flex items-center gap-2.5 sm:gap-3 ${className}`}>
