@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 
 const fallbackImages = [
@@ -83,23 +84,15 @@ export default function ProductShowcase() {
                     (featured ? 'min-h-[440px] lg:row-span-2' : 'min-h-[208px]')
                   }
                 >
-                  <img
+                  <Image
                     src={image}
                     alt={product.name}
-                    loading="lazy"
-                    decoding="async"
+                    fill
+                    sizes={featured ? '(max-width: 1024px) 100vw, 50vw' : '(max-width: 1024px) 50vw, 25vw'}
                     className={
-                      'absolute inset-0 h-full w-full object-contain transition-transform duration-[1100ms] ease-out group-hover:scale-105 ' +
+                      'object-contain transition-transform duration-[1100ms] ease-out group-hover:scale-105 ' +
                       (featured ? 'p-10 sm:p-14' : 'p-7')
                     }
-                    onError={(event) => {
-                      const node = event.currentTarget
-                      const fallback = fallbackImages[(index + 1) % fallbackImages.length]
-                      if (node.dataset.fallback !== 'used') {
-                        node.dataset.fallback = 'used'
-                        node.src = fallback
-                      }
-                    }}
                   />
 
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f13] via-[#0b0f13]/5 to-transparent" />
@@ -157,7 +150,7 @@ export default function ProductShowcase() {
                 href="/products"
                 className="group relative min-h-[260px] overflow-hidden rounded-[30px] bg-[#0b0f13] text-white shadow-[0_18px_50px_rgba(11,15,19,.08)]"
               >
-                <img src={image} alt={title} className="absolute inset-0 h-full w-full object-contain p-8 transition-transform duration-700 group-hover:scale-105" />
+                <Image src={image} alt={title} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-contain p-8 transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f13] via-transparent to-transparent" />
                 <div className="absolute bottom-5 left-5 right-5">
                   <p className="text-[9px] font-black uppercase tracking-[.17em] text-[#ff8e68]">{category}</p>
