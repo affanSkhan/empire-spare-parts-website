@@ -165,7 +165,7 @@ export default function Home() {
                     href="https://wa.me/917741077666?text=Hello%20Empire%20Car%20A%2FC%2C%20I%20want%20to%20enquire%20about%20a%20car%20A%2FC%20part."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-whatsapp"
+                    className="btn-whatsapp-ghost"
                   >
                     Inquire on WhatsApp
                   </a>
