@@ -34,18 +34,40 @@ async function blobToDataUrl(blob) {
   })
 }
 
+function getOptimizedSource(src, width = 360, quality = 58) {
+  if (!src) return null
+
+  // Route every catalogue image through Next's image optimizer first.
+  // This avoids downloading the original, potentially multi-megabyte upload.
+  const optimizerUrl = '/_next/image?url=' + encodeURIComponent(src) + '&w=' + width + '&q=' + quality
+  return optimizerUrl
+}
+
 async function fetchDataUrl(src) {
   if (!src) return null
+
   try {
-    const response = await fetch(src, { mode: 'cors', cache: 'no-store' })
-    if (!response.ok) throw new Error('Image request failed')
+    const optimizedSrc = getOptimizedSource(src)
+    const response = await fetch(optimizedSrc, {
+      mode: 'same-origin',
+      cache: 'force-cache'
+    })
+
+    if (!response.ok) throw new Error('Optimized image request failed')
     return await blobToDataUrl(await response.blob())
   } catch (error) {
-    return null
+    // Fallback for assets the optimizer cannot process.
+    try {
+      const response = await fetch(src, { mode: 'cors', cache: 'force-cache' })
+      if (!response.ok) throw new Error('Image request failed')
+      return await blobToDataUrl(await response.blob())
+    } catch (fallbackError) {
+      return null
+    }
   }
 }
 
-async function prepareImage(src, outputWidth = 620, outputHeight = 360) {
+async function prepareImage(src, outputWidth = 360, outputHeight = 210) {
   const dataUrl = await fetchDataUrl(src)
   if (!dataUrl) return null
 
@@ -69,7 +91,7 @@ async function prepareImage(src, outputWidth = 620, outputHeight = 360) {
         const y = (outputHeight - height) / 2
         context.drawImage(img, x, y, width, height)
 
-        resolve(canvas.toDataURL('image/jpeg', 0.9))
+        resolve(canvas.toDataURL('image/jpeg', 0.64))
       } catch (error) {
         resolve(null)
       }
@@ -215,7 +237,7 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
     if (busy || activeProducts.length === 0) return
 
     setBusy(true)
-    setProgress('Preparing catalogue...')
+    setProgress('Optimizing product images...')
 
     try {
       const totalPages = Math.ceil(activeProducts.length / (GRID_COLUMNS * GRID_ROWS))
@@ -232,11 +254,20 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
           (page + 1) * GRID_COLUMNS * GRID_ROWS
         )
 
-        const preparedImages = await Promise.all(
-          pageProducts.map(async (product, index) => {
+        const preparedImages = new Array(pageProducts.length)
+        let nextIndex = 0
+
+        const worker = async () => {
+          while (true) {
+            const index = nextIndex
+            nextIndex += 1
+            if (index >= pageProducts.length) return
+
+            const product = pageProducts[index]
+
             setProgress(
-              'Preparing page ' + (page + 1) + '/' + totalPages +
-              ' - product ' + (index + 1) + '/' + pageProducts.length
+              'Optimizing page ' + (page + 1) + '/' + totalPages +
+              ' - image ' + (index + 1) + '/' + pageProducts.length
             )
 
             const primary =
@@ -244,9 +275,12 @@ export default function ProductCatalogPdfButton({ products = [], className = '' 
               product?.images?.[0]?.image_url ||
               null
 
-            return await prepareImage(primary)
-          })
-        )
+            preparedImages[index] = await prepareImage(primary, 360, 210)
+          }
+        }
+
+        const workerCount = Math.min(6, pageProducts.length)
+        await Promise.all(Array.from({ length: workerCount }, () => worker()))
 
         pageProducts.forEach((product, index) => {
           const row = Math.floor(index / GRID_COLUMNS)
