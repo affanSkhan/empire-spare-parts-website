@@ -132,3 +132,8 @@ Empire_spare_parts/
 
 ## ⚖️ License
 Private project. All rights reserved.
+
+
+## Premium UI Redesign
+
+Public website redesigned with an automotive editorial visual system, cinematic imagery, scroll-driven storytelling, responsive motion, improved catalogue discovery, fitment-focused product pages, and direct call/WhatsApp conversion paths.
