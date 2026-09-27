@@ -12,7 +12,19 @@ export default function Footer() {
       <div className="site-shell relative py-14 sm:py-16">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_.7fr_1fr]">
           <div>
-            <Logo size="small" light />
+            <Link href="/" aria-label="Empire Car A/C home" className="inline-flex items-center gap-3">
+              <div className="h-10 w-10 overflow-hidden rounded-2xl bg-[#0b0f13] ring-1 ring-white/15">
+                <img src="/Empire Car Ac  Logo Design.jpg" alt="Empire Car A/C" className="h-full w-full object-cover" />
+              </div>
+              <div>
+                <div className="whitespace-nowrap text-[17px] font-black leading-none tracking-[-.035em] !text-white">
+                  EMPIRE CAR <span className="!text-[#ff5b1f]">A/C</span>
+                </div>
+                <div className="mt-1 whitespace-nowrap text-[10px] font-semibold tracking-wide !text-white/60">
+                  Our Perfection. Your Satisfaction.
+                </div>
+              </div>
+            </Link>
             <p className="mt-5 max-w-md text-sm leading-7 text-slate-400">
               Car A/C spare parts and specialist support in Amravati. Tell us the vehicle and part you need, and we’ll help you find the right fit.
             </p>
